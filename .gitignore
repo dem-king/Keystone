@@ -44,7 +44,3 @@ keystone-vue/.tmp-*
 /docs/superpowers/
 /docs/product-technical-plan.md
 /docs/frontend-architecture.png
-
-# 前端品牌配置与业务类型是必要源码，覆盖本机可能存在的 data/ 全局忽略。
-!/keystone-vue/src/data/
-!/keystone-vue/src/data/**
