@@ -6,6 +6,8 @@
 .claude/
 .npm-cache/
 .cache/
+.codeartsdoer/
+.workbuddy/
 **/.env
 **/.env.*
 !**/.env.example
@@ -36,13 +38,13 @@
 **/*.pyc
 **/.tmp-*
 **/*.tmp
-scaffold-vue/.npm-cache/
-scaffold-vue/.tmp-*
+keystone-vue/.npm-cache/
+keystone-vue/.tmp-*
 /promo-video/
 /docs/superpowers/
 /docs/product-technical-plan.md
 /docs/frontend-architecture.png
 
 # 前端品牌配置与业务类型是必要源码，覆盖本机可能存在的 data/ 全局忽略。
-!/scaffold-vue/src/data/
-!/scaffold-vue/src/data/**
+!/keystone-vue/src/data/
+!/keystone-vue/src/data/**

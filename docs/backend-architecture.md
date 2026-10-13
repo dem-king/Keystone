@@ -4,11 +4,11 @@
 
 | Maven 模块 | 中文职责 | 主要入口 |
 | --- | --- | --- |
-| `scaffold-common` | 统一响应、分页、业务异常 | `R`、`PageQuery`、`PageResult`、`BusinessException` |
-| `scaffold-framework` | 认证、会话、权限、数据范围、操作审计、异常与请求追踪 | `security`、`datascope`、`audit`、`handler`、`filter` |
-| `scaffold-system` | 用户、角色、组织、菜单、字典、参数、日志与工作台；日志统计与当日泳道 | `AuthController`、`SystemManagementController`、`DashboardController`、`MonitorController`、`MonitorStatsService` |
-| `scaffold-generator` | 真实表导入、生成配置、预览、ZIP 下载 | `GeneratorController`、`GeneratorService`、`GeneratorMapper` |
-| `scaffold-admin` | 启动、配置、初始化工具与集成测试 | `ScaffoldAdminApplication`、`DbInit` |
+| `keystone-common` | 统一响应、分页、业务异常 | `R`、`PageQuery`、`PageResult`、`BusinessException` |
+| `keystone-framework` | 认证、会话、权限、数据范围、操作审计、异常与请求追踪 | `security`、`datascope`、`audit`、`handler`、`filter` |
+| `keystone-system` | 用户、角色、组织、菜单、字典、参数、日志与工作台；日志统计与当日泳道 | `AuthController`、`SystemManagementController`、`DashboardController`、`MonitorController`、`MonitorStatsService` |
+| `keystone-generator` | 真实表导入、生成配置、预览、ZIP 下载 | `GeneratorController`、`GeneratorService`、`GeneratorMapper` |
+| `keystone-admin` | 启动、配置、初始化工具与集成测试 | `KeystoneAdminApplication`、`DbInit` |
 
 建筑、工作流模块和 Flowable 依赖已移除。新增业务复用通用模块，不在 Controller 或 Service 重复实现基础安全与返回结构。
 

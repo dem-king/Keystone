@@ -1,6 +1,6 @@
 # 珍珠玻璃设计规范
 
-本规范与 `scaffold-vue/src/styles`、公共组件及动效入口一致，作为后续后台业务页面的共同基线。
+本规范与 `keystone-vue/src/styles`、公共组件及动效入口一致，作为后续后台业务页面的共同基线。
 
 ## 视觉语言
 
@@ -14,7 +14,7 @@
 
 ## 七层样式
 
-| 文件（相对 scaffold-vue/src） | 职责 |
+| 文件（相对 keystone-vue/src） | 职责 |
 | --- | --- |
 | `styles/tokens.css` | 颜色、字色、尺寸、圆角、阴影、主题和密度 |
 | `styles/base.css` | 基础元素、可见焦点、全局布局基线 |
@@ -106,7 +106,7 @@
 
 ## 外观与响应式
 
-`composables/appearance.ts` 管理浅色、深色、跟随系统，写入根元素 `data-theme`；密度写入 `data-density`。偏好保存在 `scaffold.appearance`，账号切换只清理会话数据。
+`composables/appearance.ts` 管理浅色、深色、跟随系统，写入根元素 `data-theme`；密度写入 `data-density`。偏好保存在 `keystone.appearance`，账号切换只清理会话数据。
 
 已有外壳断点以 `layout.css` 为准；820 px 以下侧栏改为抽屉式导航，点击遮罩或选择菜单收起。窄屏表格在自身容器内水平滚动，页面整体不横向溢出；表单、标题和操作按钮可换行，主操作保持可达。
 

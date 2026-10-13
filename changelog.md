@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-10-13（项目定名 Keystone）
+
+项目英文名由 `scaffold` 改为 **Keystone**（拱心石：拱券最后落下的那块石头，拆掉它整座结构就塌），契合「统一底座、拆不得」的定位。本次先完成全部内容层替换，目录重命名需在 IDE 中手动执行（原因见文末）。
+
+- Maven 坐标：`groupId` 由 `com.scaffold` 改为 `com.keystone`；`artifactId` 由 `scaffold-*` 改为 `keystone-*`（`common` / `framework` / `system` / `generator` / `admin` 及 `keystone-system-parent`）。
+- 包前缀：84 个 Java 文件的 `com.scaffold.*` 全部改为 `com.keystone.*`；启动类 `ScaffoldAdminApplication` 改名为 `KeystoneAdminApplication`。
+- Spring 配置前缀：`application.yml` 的顶层键 `scaffold:` 改为 `keystone:`，同步修改 `JwtService` 中两处 `@Value("${keystone.jwt.*}")`，避免 JWT 密钥注入失效。
+- 应用名与日志包名：`spring.application.name` 改为 `keystone-admin`，`logging.level` 由 `com.scaffold` 改为 `com.keystone`。
+- 数据库默认名：`application-dev.yml` 中 `DB_NAME` 默认值由 `scaffold_system` 改为 `keystone_system`。**已存在的本地库不会自动改名**，需自行 `RENAME DATABASE` 或在 `DB_NAME` 中继续指定旧库名。
+- 代码生成器：`GeneratorService` 输出 ZIP 内的后端文件路径由 `com/scaffold/` 改为 `com/keystone/`（4 处），与生成的 `package` 声明保持一致，生成结果可直接放进本工程。
+- 测试环境变量：`SCAFFOLD_TEST_PASSWORD` 改为 `KEYSTONE_TEST_PASSWORD`，涉及 `scripts/session-regression.py` 读取处与两处文档说明。
+- 前端标识：`package.json` 的 `name` 改为 `keystone-vue`；12 处本地存储键前缀由 `scaffold.*` 改为 `keystone.*`（`token` / `user` / `expiresAt` / `appearance` / `recent` / `navCollapsed` / `intro.*` / `view.*` / `login-intro`），含 `index.html` 首屏防闪烁脚本、回归脚本与单测断言。**改名后浏览器中的旧会话数据不会自动迁移，需重新登录一次。**
+- 文档：`README.md`（含标题与命名释义）、`PROJECT_MAP.md`、`DESIGN.md`、`AGENTS.md`、`docs/backend-architecture.md`、`docs/frontend-backend-integration.md` 中的目录、模块、包路径与环境变量表述同步更新；历史日志条目按约定保留原样。
+
+**待手动完成**：顶层 `scaffold-system` / `scaffold-vue` 两个目录及其下`common` / `framework` / `system` / `generator` / `admin` 五个 Maven 子模块目录、Java 包目录 `com/scaffold`，以及 MySQL 库名，需在 IDE 中重命名；随后把父 `pom.xml` 的 `<module>` 列表与各文档中的目录路径对齐即可。
+
+## 2026-10-13（侧边栏多级菜单与菜单搜索）
+
+- 侧边栏从「只支持两级」升级为**无限层级**。原 `buildNav()` 只取菜单树第一层子节点，第三级及以下直接丢失（商城类后台的「商品 → 商品中心 → 品牌管理」这类结构无法访问）；现改为递归转换，深度上限 6 层（`MAX_MENU_DEPTH`），对齐后端 `sys_menu.parent_id` 自关联层级，异常数据不会撑爆导航。
+- 转换逻辑从 `composables/auth.ts` 抽到 `src/utils/navTree.ts`（纯函数，不依赖 Vue 与网络），`auth.ts` 只保留组件登记表与路径规范化策略，便于单测覆盖。
+- 新增递归组件 `components/layout/NavTreeNode.vue`，按层级收敛字号与图标尺寸；`Sidebar.vue` 模板不再手写重复的分支/叶子结构。
+- 新增**分组折叠**：`composables/navCollapse.ts` 管理折叠状态，持久化到 `sessionStorage` 的 `scaffold.navCollapsed`，遵循 `appearance.ts` 既有的存储不可用容错约定。菜单结构变化后自动清理失效分组键。
+- 路由变化时自动展开当前页的所有祖先分支（`revealActive`），避免用户看不到自己在哪；仅在确有折叠项时写入，不产生无谓的存储操作。
+- 新增**侧边栏菜单搜索**：跨层级匹配菜单名，命中后临时展开全部分组并显示匹配计数，无结果时显示空态；不再依赖 Ctrl+K 命令面板这一隐藏入口。
+- 修正 `hasActive` 只检查第一层的问题：深层页面激活时滑动玻璃块不显示，改为深度查找任意层级。
+- 同步修复其他扁平结构消费方：`CommandPalette.vue` 与 `Dashboard.vue` 快捷入口改为深度展开，`router/index.ts` 的 `homePath()` 改为向下取第一个可见页面（分组首项可能是纯目录，原写法会取到空路径）。
+- 新增 `src/utils/__tests__/navTree.test.ts`，11 个用例覆盖两级/三级结构、纯目录摊平、页面兼分组、未登记组件的子树保留、深度截断、分组归属与空树。
+- 新增 `scaffold-vue/scripts/verify-nav.py`：Playwright 真实浏览器验证 16 项（多级渲染、折叠隔离性、状态持久化、搜索命中与空态、深层路由跳转、高亮、刷新恢复、无运行时错误），需先写入商城演示菜单数据。
+- 验证：`npm run test:unit` 通过 32 个测试（新增 11 个），`npm run build` 通过，`vue-tsc --noEmit` 无错误；Playwright 在 `5180` 端口 16 项全部通过；验证完成后已清理演示菜单与登录日志，数据库还原为 38 条菜单。
+- 本机环境记录：`npm ci` 后需补装平台可选依赖 `@rollup/rollup-win32-x64-msvc` 与 `@esbuild/win32-x64`，否则 `vite` 无法启动；Vite 默认仅监听 IPv6，浏览器自动化需用 `--host 127.0.0.1`。
+
+## 2026-10-13（局域网访问）
+
+- 前端开发服务器与 `preview` 均改为监听所有网卡，同一局域网的同事可直接在浏览器打开 `http://<本机内网IP>:5180` 查看项目，无需端口转发或在本机安装额外组件；`/api` 代理仍在开发服务器本机转发到后端。
+- 前端端口由 `5173` 改为 `5180`（本机 `5173` 已被其他项目占用，实测请求会被该项目接管），预览端口由 `4173` 改为 `4180`；新增 `VITE_PORT`、`VITE_PREVIEW_PORT` 环境变量覆盖，并开启 `strictPort`，端口被占用时直接失败而非静默递增，避免同事按固定端口访问连不上。
+- 后端新增 `SERVER_ADDRESS` 配置，默认绑定 `127.0.0.1`，同事无法直连 `8080`，需其他设备直连时显式设为 `0.0.0.0`。
+- 新增 `VITE_ALLOWED_HOSTS` 环境变量：Vite 默认放行 IPv4 字面量与 localhost，用 IP 访问无需配置；用计算机名访问时需声明主机名，否则返回 403。
+- 同步 `README.md`、前端 `README.md`、`PROJECT_MAP.md` 端口与新增环境变量说明；`scripts/session-regression.py` 默认 base URL 同步为 `5180`。
+- 验证：开发服务器在 `0.0.0.0:5180` 监听，以 `Host: 192.168.1.39:5180` 访问首页返回本项目页面（标题「通用后台管理系统」），`/src/main.ts`、`/@vite/client` 均 200，`/api/auth/captcha` 真实返回验证码数据（后端已在运行）；非 IP 主机名 Host 头被 403 拦截，符合预期；本机域/专用/公用三个防火墙配置文件状态均为关闭，无需额外放行规则。
+
 ## 2026-10-11（MIT 开源发布）
 
 - 以当前代码建立独立的公开版本快照，采用 MIT License；第三方依赖保留各自许可，README 单独说明 GSAP 许可。

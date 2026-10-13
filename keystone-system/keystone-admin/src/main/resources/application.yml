@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: keystone-admin
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+  # 后端默认只监听本机回环地址：同事通过前端开发服务器的 /api 代理访问，
+  # 不需要直连 8080。如需让其他机器直连后端（如移动端联调），将 SERVER_ADDRESS
+  # 设置为 0.0.0.0 显式放开。
+  address: "${SERVER_ADDRESS:127.0.0.1}"
+
+keystone:
+  api-prefix: /api
+  jwt:
+    secret: "${JWT_SECRET}"
+    expires-seconds: 7200
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true

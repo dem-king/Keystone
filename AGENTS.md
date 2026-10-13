@@ -7,7 +7,7 @@
 
 ## 项目强制开发准则
 
-本项目是供后续项目复用的 Spring Boot + Vue 后台管理脚手架，必须按“统一底座、统一组件、统一风格、统一能力复用”的方式开发。开发入口见 `README.md`，链路定位见 `PROJECT_MAP.md`，视觉规范见 `DESIGN.md`。
+本项目是供后续项目复用的 Spring Boot + Vue 后台管理脚手架（Keystone，拱心石），必须按“统一底座、统一组件、统一风格、统一能力复用”的方式开发。开发入口见 `README.md`，链路定位见 `PROJECT_MAP.md`，视觉规范见 `DESIGN.md`。
 
 ### 前端准则
 

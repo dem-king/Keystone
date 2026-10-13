@@ -1,4 +1,4 @@
-# 通用后台管理脚手架项目地图
+# Keystone 通用后台管理脚手架项目地图
 
 > 2026-10-11 更新。用于后续业务开发和排障；“已确认”表示代码链路已核对，运行验证记录见 `changelog.md`。数据库映射已与本地 MySQL 5.7 的真实结构及两份初始化脚本核对。
 
@@ -6,13 +6,13 @@
 
 | 端 | 路径 | 技术栈 | 本地入口 | 来源 |
 | --- | --- | --- | --- | --- |
-| 后端 | `scaffold-system` | Java 17+、Spring Boot 3.5、MyBatis、MySQL、Redis、JWT | `8080`，接口前缀 `/api` | 已确认 |
-| 管理后台 | `scaffold-vue` | Vue 3、TypeScript、Vite、Vue Router、GSAP，自有组件 | `5173`，开发代理 `/api` | 已确认 |
+| 后端 | `keystone-system` | Java 17+、Spring Boot 3.5、MyBatis、MySQL、Redis、JWT | `8080`，接口前缀 `/api` | 已确认 |
+| 管理后台 | `keystone-vue` | Vue 3、TypeScript、Vite、Vue Router、GSAP，自有组件 | `5180`，开发代理 `/api` | 已确认 |
 
-- Maven 模块：`scaffold-common`、`scaffold-framework`、`scaffold-system`、`scaffold-generator`、`scaffold-admin`。
-- 包名前缀：`com.scaffold`；启动类：`scaffold-system/scaffold-admin/src/main/java/com/scaffold/admin/ScaffoldAdminApplication.java`。
-- 配置：`scaffold-system/scaffold-admin/src/main/resources/application.yml`、`application-dev.yml`；前端代理：`scaffold-vue/vite.config.ts`。
-- 数据库初始化：`scaffold-system/sql/V1__init_schema.sql`、`V2__seed_data.sql`；开发工具：`scaffold-admin/src/main/java/com/scaffold/admin/util/DbInit.java`。
+- Maven 模块：`keystone-common`、`keystone-framework`、`keystone-system`、`keystone-generator`、`keystone-admin`。
+- 包名前缀：`com.keystone`；启动类：`keystone-system/keystone-admin/src/main/java/com/keystone/admin/KeystoneAdminApplication.java`。
+- 配置：`keystone-system/keystone-admin/src/main/resources/application.yml`、`application-dev.yml`；前端代理：`keystone-vue/vite.config.ts`。
+- 数据库初始化：`keystone-system/sql/V1__init_schema.sql`、`V2__seed_data.sql`；开发工具：`keystone-admin/src/main/java/com/keystone/admin/util/DbInit.java`。
 - 入口规范：`README.md`、`AGENTS.md`、`DESIGN.md`；建筑与工作流已移除。
 
 ## 二、业务术语词典
@@ -31,17 +31,17 @@
 
 ## 三、模块文件地图
 
-下列后端业务路径均相对于 `scaffold-system`，前端路径均相对于 `scaffold-vue/src`。
+下列后端业务路径均相对于 `keystone-system`，前端路径均相对于 `keystone-vue/src`。
 
 | 后端模块 | Controller | Service | Mapper / 表 | 来源 |
 | --- | --- | --- | --- | --- |
-| 认证与路由 | `scaffold-system/src/main/java/com/scaffold/system/controller/AuthController.java` | 同包域 `service/AuthService.java`、`SystemPermissionResolver.java` | `mapper/AuthMapper.java`；用户、角色、菜单及关联表、登录日志 | 已确认 |
-| 用户、角色、组织、菜单、字典、参数 | `scaffold-system/src/main/java/com/scaffold/system/controller/SystemManagementController.java` | `service/SystemManagementService.java` | `mapper/SystemManagementMapper.java`；各 `sys_*` 管理表 | 已确认 |
-| 工作台 | `scaffold-system/src/main/java/com/scaffold/system/controller/DashboardController.java` | `service/DashboardService.java` | `mapper/DashboardMapper.java`；用户、角色、两类日志 | 已确认 |
-| 日志查询、导出与清理 | `scaffold-system/src/main/java/com/scaffold/system/controller/MonitorController.java` | `service/SystemManagementService.java` | `mapper/SystemManagementMapper.java`；两类日志 | 已确认 |
+| 认证与路由 | `keystone-system/src/main/java/com/keystone/system/controller/AuthController.java` | 同包域 `service/AuthService.java`、`SystemPermissionResolver.java` | `mapper/AuthMapper.java`；用户、角色、菜单及关联表、登录日志 | 已确认 |
+| 用户、角色、组织、菜单、字典、参数 | `keystone-system/src/main/java/com/keystone/system/controller/SystemManagementController.java` | `service/SystemManagementService.java` | `mapper/SystemManagementMapper.java`；各 `sys_*` 管理表 | 已确认 |
+| 工作台 | `keystone-system/src/main/java/com/keystone/system/controller/DashboardController.java` | `service/DashboardService.java` | `mapper/DashboardMapper.java`；用户、角色、两类日志 | 已确认 |
+| 日志查询、导出与清理 | `keystone-system/src/main/java/com/keystone/system/controller/MonitorController.java` | `service/SystemManagementService.java` | `mapper/SystemManagementMapper.java`；两类日志 | 已确认 |
 | 日志统计与当日泳道 | 同上 | `service/MonitorStatsService.java` | `mapper/MonitorStatsMapper.java`；两类日志（只读） | 已确认 |
-| 代码生成 | `scaffold-generator/src/main/java/com/scaffold/generator/controller/GeneratorController.java` | `service/GeneratorService.java` | `mapper/GeneratorMapper.java`；`information_schema`、两张生成配置表 | 已确认 |
-| 健康检查 | `scaffold-admin/src/main/java/com/scaffold/admin/controller/HealthController.java` | 无独立业务服务 | 无数据库写入 | 已确认 |
+| 代码生成 | `keystone-generator/src/main/java/com/keystone/generator/controller/GeneratorController.java` | `service/GeneratorService.java` | `mapper/GeneratorMapper.java`；`information_schema`、两张生成配置表 | 已确认 |
+| 健康检查 | `keystone-admin/src/main/java/com/keystone/admin/controller/HealthController.java` | 无独立业务服务 | 无数据库写入 | 已确认 |
 
 | 前端功能 | 路由 | 页面文件 | API 文件 / 后端模块 | 来源 |
 | --- | --- | --- | --- | --- |
@@ -69,6 +69,7 @@
 | 表单与引用选项 | `components/business/FormDialog.vue`、`DictSelect.vue`、`DeptTree.vue`、`DeptSelect.vue`、`UserSelect.vue` | 统一表单、字典、部门、用户选择 |
 | 权限 | `components/business/PermissionButton.vue`、`directives/permission.ts` | 以当前用户权限控制操作显示 |
 | 外壳 | `components/layout/AppShell.vue`、`Sidebar.vue`、`Topbar.vue`、`CommandPalette.vue` | 导航、移动侧栏、滚动凝结顶栏、命令面板（最近访问 / 页面 / 用户 / 动作）与账号操作 |
+| 导航树与折叠 | `components/layout/NavTreeNode.vue`、`composables/navCollapse.ts`、`utils/navTree.ts` | 递归渲染任意层级菜单、分组折叠状态（`sessionStorage` 的 `keystone.navCollapsed`）、菜单树转换纯函数（深度上限 `MAX_MENU_DEPTH=6`） |
 | 请求与会话 | `api/http.ts`、`api/session.ts`、`composables/auth.ts`、`router/index.ts` | 响应解包、存储、401 处理、动态路由与会话清理 |
 | 外观与动效 | `composables/appearance.ts`、`motion.ts`、`focus.ts` | 主题、密度、GSAP、浮层层级与焦点 |
 | 样式 | `styles/tokens.css`、`base.css`、`materials.css`、`components.css`、`instruments.css`、`layout.css`、`pages.css` | 顺序加载的七层样式 |
@@ -168,6 +169,9 @@
 - `composables/ask.ts` 是本地规则问答引擎：各模块注册 `intent{patterns, run}`，按 `hasPermission` 过滤不可用意图；命令面板输入 `?` 进入同一引擎。
 - 视口平移缩放集中在 `composables/viewport.ts`（`useViewportPan`）：组织画布与关系图共用；`firstTimeInSession` 控制工作台开场等“每会话一次”的编排。
 - 用户按岗位过滤走 `sys_user_post` 关联条件，分页、统计、导出一致生效并沿用 `@DataScope`。
+- 侧边栏菜单树递归渲染，支持三级及以上（深度上限 `MAX_MENU_DEPTH=6`）；二级及以下节点按分组折叠，状态存 `sessionStorage` 的 `keystone.navCollapsed`，路由变化时自动展开当前页的祖先分支。
+- 菜单搜索在侧边栏内跨层级匹配（非隐藏入口）；Ctrl+K 命令面板覆盖同样的页面集合，两者共用 `navLeaves` 的深度展开结果。
+- 新增业务菜单只需在 `sys_menu` 写 `parent_id` 自关联，并在 `auth.ts` 的 `COMPONENT_MAP` 登记组件路径，无需改动导航组件。
 
 <!-- MANUAL-NOTES-START -->
 ## 十、人工维护备注
