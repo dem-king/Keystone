@@ -7,6 +7,9 @@ import { buildNavGroups, groupOfPaths, navLeaves } from '@/utils/navTree'
 import { clearDictCache } from './dict'
 import { clearDeptCache } from './dept'
 
+/** 深度展开导航树中的所有可点击页面，供侧边栏统计与搜索复用 */
+export { navLeaves }
+
 /* ============================================================
    登录态、权限与动态菜单。
    菜单与路由完全来自后端 /api/auth/routes（sys_menu 表），

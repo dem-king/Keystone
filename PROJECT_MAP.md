@@ -170,6 +170,7 @@
 - 视口平移缩放集中在 `composables/viewport.ts`（`useViewportPan`）：组织画布与关系图共用；`firstTimeInSession` 控制工作台开场等“每会话一次”的编排。
 - 用户按岗位过滤走 `sys_user_post` 关联条件，分页、统计、导出一致生效并沿用 `@DataScope`。
 - 侧边栏菜单树递归渲染，支持三级及以上（深度上限 `MAX_MENU_DEPTH=6`）；二级及以下节点按分组折叠，状态存 `sessionStorage` 的 `keystone.navCollapsed`，路由变化时自动展开当前页的祖先分支。
+- 一级分组同样可折叠。可见页面总数超过 `AUTO_COLLAPSE_THRESHOLD=20` 进入紧凑模式，自动收起排在 `KEEP_OPEN_GROUPS=2` 之后的分组；当前页分组与搜索态强制展开。手动折叠存 `keystone.navCollapsed`，手动展开存 `keystone.navExpanded`，两者共同覆盖自动策略。
 - 菜单搜索在侧边栏内跨层级匹配（非隐藏入口）；Ctrl+K 命令面板覆盖同样的页面集合，两者共用 `navLeaves` 的深度展开结果。
 - 新增业务菜单只需在 `sys_menu` 写 `parent_id` 自关联，并在 `auth.ts` 的 `COMPONENT_MAP` 登记组件路径，无需改动导航组件。
 

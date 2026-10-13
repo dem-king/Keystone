@@ -220,6 +220,34 @@
 .nav-branch-body .nav-branch-body .nav-item-nested { font-size: 12px; }
 .nav-item.is-active .nav-caret { color: var(--blue); }
 
+/* ── 一级分组折叠：菜单全是两级时，按分组收起控制侧栏长度 ── */
+.nav-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.nav-group-toggle:hover { color: var(--ink-soft); }
+.nav-group-toggle:focus-visible { outline-offset: -2px; }
+.nav-group-toggle .nav-caret {
+  flex: none;
+  margin-left: auto;
+  transition: rotate .24s var(--ease-premium), color .2s ease;
+}
+.nav-group-toggle .nav-caret.is-open { rotate: 180deg; }
+/* 收起状态给出轻微提示，用户才意识得到下面还有内容 */
+.nav-group-toggle:not(.is-open) { color: var(--ink-faint); }
+.nav-group-body { position: relative; }
+
 .app-frame.is-collapsed .brand-text,
 .app-frame.is-collapsed .nav-label,
 .app-frame.is-collapsed .nav-group-title,

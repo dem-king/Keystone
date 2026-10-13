@@ -89,10 +89,10 @@ async function playSuccess() {
 }
 
 const CAPABILITIES = [
-  { icon: 'role', title: '角色与按钮权限', desc: '菜单、按钮两级授权，前后端同一套权限码' },
-  { icon: 'layers', title: '数据权限', desc: '全部 / 本部门及下级 / 本部门 / 本人' },
-  { icon: 'log', title: '操作审计', desc: '登录日志与操作日志自动记录' },
-  { icon: 'code', title: '代码生成', desc: '导入数据表，生成业务模块开发骨架' },
+  { icon: 'role', title: '角色授权', desc: '菜单、按钮两级控制，前后端共用一套权限码' },
+  { icon: 'layers', title: '数据权限', desc: '全部 / 本部门及下级 / 本部门 / 本人，四档范围' },
+  { icon: 'log', title: '操作审计', desc: '登录与关键操作自动留痕，支持回溯' },
+  { icon: 'code', title: '代码生成', desc: '导入数据表，产出模块开发骨架' },
 ]
 
 async function refreshCaptcha() {
@@ -104,7 +104,7 @@ async function refreshCaptcha() {
   } catch {
     captchaUuid.value = ''
     captchaCode.value = ''
-    formError.value = '无法连接服务，请确认后端已启动'
+    formError.value = '无法连接服务，请确认服务已启动后重试'
   } finally {
     captchaLoading.value = false
   }
@@ -213,12 +213,12 @@ onBeforeUnmount(() => {
 
       <div class="canvas-main">
         <div class="canvas-copy">
-          <span class="eyebrow hero-line">通用后台底座 · {{ APP.version }}</span>
+          <span class="eyebrow hero-line">内部管理平台 · {{ APP.version }}</span>
           <h1 class="login-title">
-            <span class="hero-line">统一的后台底座，</span>
-            <span class="hero-line">专注业务本身。</span>
+            <span class="hero-line">底座一次搭好，</span>
+            <span class="hero-line">只写你的业务。</span>
           </h1>
-          <p class="login-lead hero-line">用户、角色、菜单、部门、字典与审计开箱即用，新业务模块只需关注字段与流程。</p>
+          <p class="login-lead hero-line">用户、角色、菜单、部门、字典、审计与代码生成开箱即用；接入新模块时，只需定义字段与流程。</p>
         </div>
 
         <!-- 实时时钟：秒针对应的刻度点亮，逐秒推进（导 Conduct） -->
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
 
       <div class="canvas-plates">
         <div class="login-plate is-health">
-          <span class="eyebrow">服务状态</span>
+          <span class="eyebrow">服务健康</span>
           <span :class="['health-dot', { 'is-ok': health.ok }]" aria-hidden="true" />
           <b>{{ health.ok ? '运行正常' : health.latency === null ? '连接中断' : '状态异常' }}</b>
           <span class="tnum plate-sub">{{ health.latency === null ? '—' : `${health.latency} ms` }}</span>
@@ -263,9 +263,9 @@ onBeforeUnmount(() => {
       <div ref="card" class="login-card m-float m-glow" role="region" aria-labelledby="login-heading" @pointermove="trackGlow">
         <span class="glow-layer" aria-hidden="true" />
         <div class="login-card-inner">
-          <span class="eyebrow">账号登录</span>
-          <h2 id="login-heading" class="login-card-title">登录</h2>
-          <p class="login-card-sub">使用管理员分配的账号登录系统</p>
+          <span class="eyebrow">欢迎回来</span>
+          <h2 id="login-heading" class="login-card-title">账号登录</h2>
+          <p class="login-card-sub">请使用管理员分配的账号进入系统</p>
 
           <form class="login-form" novalidate @submit.prevent="submit">
             <Field label="账号" :error="errors.username">

@@ -117,9 +117,12 @@ python3 scripts/session-regression.py
 # 验证多级菜单渲染、分组折叠、菜单搜索与深层路由跳转；
 # 需先在 sys_menu 写入三级以上演示菜单（脚本假定存在「商品中心」分支）
 python3 scripts/verify-nav.py http://127.0.0.1:5180
+# 验证一级分组折叠与超阈值自动收起；
+# 需先写入纯两级但总量超阈值的演示菜单
+python3 scripts/verify-group-collapse.py http://127.0.0.1:5180
 ```
 
-浏览器回归脚本只创建并删除自己生成的测试角色和用户，不清空表；管理员密码可通过 `KEYSTONE_TEST_PASSWORD` 覆盖。`verify-nav.py` 不写数据库，只读现有菜单。测试与构建成功不能代替业务页面验收。
+浏览器回归脚本只创建并删除自己生成的测试角色和用户，不清空表；管理员密码可通过 `KEYSTONE_TEST_PASSWORD` 覆盖。`verify-*.py` 不写数据库，只读现有菜单。测试与构建成功不能代替业务页面验收。
 
 ## 许可证
 
