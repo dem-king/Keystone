@@ -3,6 +3,7 @@ package com.keystone.system.service;
 import com.keystone.common.exception.BusinessException;
 import com.keystone.framework.security.JwtService;
 import com.keystone.framework.security.TokenStore;
+import com.keystone.framework.web.ClientInfoResolver;
 import com.keystone.system.domain.AuthUserRow;
 import com.keystone.system.domain.MenuRow;
 import com.keystone.system.domain.dto.ChangePasswordRequest;
@@ -42,16 +43,16 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         AuthUserRow user = authMapper.selectUserByUsername(request.getUsername());
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            authMapper.insertLoginLog(request.getUsername(), 0, "账号或密码错误");
+            writeLoginLog(request.getUsername(), 0, "账号或密码错误");
             throw new BusinessException("账号或密码错误");
         }
         if (user.getStatus() == null || user.getStatus() != 1) {
-            authMapper.insertLoginLog(request.getUsername(), 0, "账号已停用");
+            writeLoginLog(request.getUsername(), 0, "账号已停用");
             throw new BusinessException("账号已停用");
         }
         String token = jwtService.generateToken(user.getId(), user.getUsername());
         tokenStore.store(token, user.getUsername(), jwtService.expiresSeconds());
-        authMapper.insertLoginLog(user.getUsername(), 1, "登录成功");
+        writeLoginLog(user.getUsername(), 1, "登录成功");
         authMapper.updateLastLoginTime(user.getId());
         return new LoginResponse(token, jwtService.expiresSeconds());
     }
@@ -60,9 +61,15 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getCredentials() instanceof String token) {
             tokenStore.revoke(token);
-            authMapper.insertLoginLog(String.valueOf(authentication.getPrincipal()), 1, "退出登录");
+            writeLoginLog(String.valueOf(authentication.getPrincipal()), 1, "退出登录");
         }
         SecurityContextHolder.clearContext();
+    }
+
+    /** 写登录日志：从当前请求采集 IP、地点、浏览器、系统，无请求上下文时对应字段记 NULL。 */
+    private void writeLoginLog(String username, int status, String msg) {
+        ClientInfoResolver.ClientInfo client = ClientInfoResolver.current();
+        authMapper.insertLoginLog(username, client.ip(), client.location(), client.browser(), client.os(), status, msg);
     }
 
     public CurrentUserResponse currentUser() {

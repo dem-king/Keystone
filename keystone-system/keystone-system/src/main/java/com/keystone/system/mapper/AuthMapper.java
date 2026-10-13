@@ -78,11 +78,18 @@ public interface AuthMapper {
             """)
     List<MenuRow> selectAllRouteMenus();
 
+    /** 登录日志：IP、地点、浏览器、系统由 ClientInfoResolver 从当前请求采集后一并落库 */
     @Insert("""
-            INSERT INTO sys_login_log (username, status, msg, login_time)
-            VALUES (#{username}, #{status}, #{msg}, NOW())
+            INSERT INTO sys_login_log (username, ip, location, browser, os, status, msg, login_time)
+            VALUES (#{username}, #{ip}, #{location}, #{browser}, #{os}, #{status}, #{msg}, NOW())
             """)
-    void insertLoginLog(@Param("username") String username, @Param("status") int status, @Param("msg") String msg);
+    void insertLoginLog(@Param("username") String username,
+                        @Param("ip") String ip,
+                        @Param("location") String location,
+                        @Param("browser") String browser,
+                        @Param("os") String os,
+                        @Param("status") int status,
+                        @Param("msg") String msg);
 
     /** 登录成功后记录最近登录时间（sys_user.last_login_time），用户列表与看板据此展示 */
     @Update("UPDATE sys_user SET last_login_time = NOW() WHERE id = #{userId} AND deleted = 0")

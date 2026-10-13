@@ -2,6 +2,7 @@ package com.keystone.system.service;
 
 import com.keystone.framework.audit.OperationLogEntry;
 import com.keystone.framework.audit.OperationLogRecorder;
+import com.keystone.framework.web.ClientInfoResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -29,17 +30,10 @@ public class JdbcOperationLogRecorder implements OperationLogRecorder {
                 entry.operator(),
                 null,
                 entry.ip(),
-                location(entry.ip()),
+                ClientInfoResolver.resolveLocation(entry.ip()),
                 entry.cost(),
                 entry.result(),
                 entry.errorMessage()
         );
-    }
-
-    private String location(String ip) {
-        if (ip == null || ip.isBlank()) {
-            return null;
-        }
-        return "127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip) ? "本机" : "内网";
     }
 }

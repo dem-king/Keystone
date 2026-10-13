@@ -140,6 +140,7 @@
 | 登录成功后停在对勾圆环 | `Login.vue` | 进入外壳的导航被取消（会话过期等）时须恢复登录按钮 | 已确认 |
 | 抽屉内确认框被挡 / Escape 连带关闭 | `focus.ts`、`Modal.vue`、`Drawer.vue`、`Select.vue` | 打开顺序、公共层级、最上层焦点与事件 | 已确认 |
 | 预览其他文件无代码 / 菜单 SQL 不匹配 | `GeneratorService`、`Generator.vue` | 每份文件的 `code`、当前菜单字段和类型 | 已确认 |
+| 登录日志来源 / 客户端列为空 | `AuthMapper.insertLoginLog`、`ClientInfoResolver` | 写入端是否采集 `ip / location / browser / os`；存量旧记录为 NULL，仅新记录有值 | 已确认 |
 
 ## 八、权限标识速查
 
@@ -173,6 +174,7 @@
 - 一级分组同样可折叠。可见页面总数超过 `AUTO_COLLAPSE_THRESHOLD=20` 进入紧凑模式，自动收起排在 `KEEP_OPEN_GROUPS=2` 之后的分组；当前页分组与搜索态强制展开。手动折叠存 `keystone.navCollapsed`，手动展开存 `keystone.navExpanded`，两者共同覆盖自动策略。
 - 菜单搜索在侧边栏内跨层级匹配（非隐藏入口）；Ctrl+K 命令面板覆盖同样的页面集合，两者共用 `navLeaves` 的深度展开结果。
 - 新增业务菜单只需在 `sys_menu` 写 `parent_id` 自关联，并在 `auth.ts` 的 `COMPONENT_MAP` 登记组件路径，无需改动导航组件。
+- 客户端信息（IP、地点、浏览器、系统）由 `keystone-framework` 的 `com.keystone.framework.web.ClientInfoResolver` 从当前请求统一采集，登录日志与操作日志共用：IP 取 `X-Forwarded-For` → `X-Real-IP` → 直连地址；地点仅标注「本机 / 内网」（公网留空，待接地理库）；无请求上下文时字段记 NULL。
 
 <!-- MANUAL-NOTES-START -->
 ## 十、人工维护备注

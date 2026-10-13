@@ -5,7 +5,7 @@
 | Maven 模块 | 中文职责 | 主要入口 |
 | --- | --- | --- |
 | `keystone-common` | 统一响应、分页、业务异常 | `R`、`PageQuery`、`PageResult`、`BusinessException` |
-| `keystone-framework` | 认证、会话、权限、数据范围、操作审计、异常与请求追踪 | `security`、`datascope`、`audit`、`handler`、`filter` |
+| `keystone-framework` | 认证、会话、权限、数据范围、操作审计、异常与请求追踪、客户端信息采集 | `security`、`datascope`、`audit`、`web`、`handler`、`filter` |
 | `keystone-system` | 用户、角色、组织、菜单、字典、参数、日志与工作台；日志统计与当日泳道 | `AuthController`、`SystemManagementController`、`DashboardController`、`MonitorController`、`MonitorStatsService` |
 | `keystone-generator` | 真实表导入、生成配置、预览、ZIP 下载 | `GeneratorController`、`GeneratorService`、`GeneratorMapper` |
 | `keystone-admin` | 启动、配置、初始化工具与集成测试 | `KeystoneAdminApplication`、`DbInit` |
@@ -18,7 +18,7 @@
 
 - JWT 与 Redis token 必须同时有效，退出撤销当前 token；每次登录的 JWT ID 独立，快速重新登录不会复用已撤销 token。
 - JWT 签名密钥通过必填环境变量 `JWT_SECRET` 配置，UTF-8 编码至少 32 字节且不能全为空白；缺失或长度不足会阻止启动，仓库不内置共享签名密钥。
-- 登录成功写登录日志并更新 `sys_user.last_login_time`（最近登录时间），用户列表与看板据此展示。
+- 登录成功、退出与失败尝试都写登录日志（IP、地点、浏览器、系统由 `ClientInfoResolver` 从当前请求采集），登录成功同时更新 `sys_user.last_login_time`（最近登录时间），用户列表与看板据此展示。
 - `/api/health`、验证码与登录可匿名访问，其余接口要求登录。
 - `@RequiresPermission` 校验操作权限；超级管理员直接放行，普通角色必须启用且未删除，停用用户不能获得接口权限。
 - 菜单来自真实授权关系；超级管理员读取所有启用且可见的菜单，无需逐项授权新菜单。

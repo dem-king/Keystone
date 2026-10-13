@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-13（修复：登录日志的来源与客户端列为空）
+
+登录日志的「来源」「客户端」两列一直显示「—」。根因在写入端：`sys_login_log` 表本身有 `ip / location / browser / os` 四列，列表查询与前端渲染也一直正常，唯独 `AuthMapper.insertLoginLog` 只写入 `username / status / msg / login_time`，登录、退出、失败尝试三类记录从未采集过请求上下文，四列始终为 NULL。
+
+- 新增 `framework/web/ClientInfoResolver`（登录日志、操作日志共用的客户端信息采集）：IP 取 `X-Forwarded-For` → `X-Real-IP` → 直连地址；浏览器与系统从 `User-Agent` 解析（覆盖 Chrome / Edge / Firefox / Safari / Opera 与微信、QQ 内置浏览器，Windows / macOS / Android / iOS / HarmonyOS / Linux）；地点对回环地址标注「本机」、私有网段标注「内网」（IPv4-mapped IPv6 先归一化），公网地址留空待接地理库。无请求上下文（异步线程、单测）时返回空快照，字段记 NULL，不抛异常。
+- `AuthMapper.insertLoginLog` 增加四列写入；`AuthService` 的登录成功、密码错误、账号停用、退出登录四个写入点统一经 `ClientInfoResolver.current()` 采集。
+- 消除重复实现：`OperationLogAspect` 的私有 `clientIp()` 与 `JdbcOperationLogRecorder` 的私有 `location()` 改为复用同一工具。地点判断由「非本机即内网」修正为「仅私有网段标注内网」——此前公网 IP 被误标「内网」，现留空。
+- 前端无需改动：`LoginLog.vue` 的来源列（IP + 地点副行）与客户端列（浏览器 · 系统）本就按这四列渲染，为空时显示「—」。
+- 新增 `ClientInfoResolverTest`：8 个用例覆盖多浏览器 / 系统 UA、代理头优先级、回环与私有网段判定（含 `172.16-31` 边界与 mapped IPv6）。验证：`mvn -pl keystone-framework -am test` 8/8 通过；另建独立校验库启动临时实例实测——登录、退出、密码错误三类登录记录与「修改密码」操作日志的 `ip=127.0.0.1 / location=本机 / browser=Chrome / os=Windows` 均正确落库，且能通过日志列表接口读回，验证后已清理临时库与实例。
+- 存量记录仍为 NULL（当时无采集来源，不做回填）；**重启后端后重新登录产生的新记录即有值**。
+
 ## 2026-10-13（修复：分组折叠后无法再展开）
 
 侧边栏一级分组点击无反应：折叠过的分组再也展不开，用户困在「看得见标题、点不开内容」的状态。根因是折叠状态有两个列表，而用户展开时只写了其中一个。
