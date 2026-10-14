@@ -12,13 +12,6 @@ public interface DashboardMapper {
     @Select("SELECT COUNT(*) FROM sys_user WHERE deleted = 0")
     long countUsers();
 
-    @Select("""
-            SELECT COUNT(*)
-            FROM sys_login_log
-            WHERE status = 1 AND login_time >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
-            """)
-    long countOnlineUsers();
-
     @Select("SELECT COUNT(*) FROM sys_role WHERE deleted = 0")
     long countRoles();
 
@@ -35,19 +28,18 @@ public interface DashboardMapper {
             """)
     long countApiCalls();
 
+    /** 登录趋势（24 小时档，按小时）：只统计登录事件，排除「退出登录」记录 */
     @Select("""
             SELECT HOUR(login_time) AS hourValue, COUNT(*) AS total
             FROM sys_login_log
             WHERE login_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+              AND COALESCE(msg, '') <> '退出登录'
             GROUP BY HOUR(login_time)
             """)
     List<Map<String, Object>> selectLoginTrend();
 
     @Select("SELECT COUNT(*) FROM sys_user WHERE deleted = 0 AND create_time >= DATE_SUB(NOW(), INTERVAL 1 DAY)")
     long countUsersCreatedSince1d();
-
-    @Select("SELECT COUNT(*) FROM sys_login_log WHERE status = 1 AND login_time >= DATE_SUB(NOW(), INTERVAL 2 HOUR)")
-    long countOnlineUsers2h();
 
     @Select("SELECT COUNT(*) FROM sys_role WHERE deleted = 0 AND create_time >= DATE_SUB(NOW(), INTERVAL 1 DAY)")
     long countRolesCreatedSince1d();
@@ -72,10 +64,12 @@ public interface DashboardMapper {
     @Select("SELECT COUNT(*) FROM sys_oper_log WHERE oper_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR) AND result = 1")
     long countApiCallsSuccessInHours(int hours);
 
+    /** 登录趋势（按天档）：只统计登录事件，排除「退出登录」记录 */
     @Select("""
             SELECT DATEDIFF(DATE(login_time), CURDATE() - INTERVAL (#{days} - 1) DAY) AS dayIndex, COUNT(*) AS total
             FROM sys_login_log
             WHERE login_time >= CURDATE() - INTERVAL (#{days} - 1) DAY
+              AND COALESCE(msg, '') <> '退出登录'
             GROUP BY dayIndex
             ORDER BY dayIndex
             """)
@@ -93,16 +87,17 @@ public interface DashboardMapper {
             """)
     List<Map<String, Object>> selectActivities();
 
-    /** 上一周期登录数（24 小时档）：48 小时前到 24 小时前 */
-    @Select("SELECT COUNT(*) FROM sys_login_log WHERE login_time >= DATE_SUB(NOW(), INTERVAL 48 HOUR) AND login_time < DATE_SUB(NOW(), INTERVAL 24 HOUR)")
+    /** 上一周期登录数（24 小时档）：48 小时前到 24 小时前，只统计登录事件 */
+    @Select("SELECT COUNT(*) FROM sys_login_log WHERE login_time >= DATE_SUB(NOW(), INTERVAL 48 HOUR) AND login_time < DATE_SUB(NOW(), INTERVAL 24 HOUR) AND COALESCE(msg, '') <> '退出登录'")
     long countLoginsPrev24h();
 
-    /** 上一周期登录数（按天档）：与当前 days 天窗口等长的前一段 */
+    /** 上一周期登录数（按天档）：与当前 days 天窗口等长的前一段，只统计登录事件 */
     @Select("""
             SELECT COUNT(*)
             FROM sys_login_log
             WHERE login_time >= CURDATE() - INTERVAL (#{days} * 2 - 1) DAY
               AND login_time < CURDATE() - INTERVAL (#{days} - 1) DAY
+              AND COALESCE(msg, '') <> '退出登录'
             """)
     long countLoginsPrevDays(int days);
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import Segmented from '@/components/ui/Segmented.vue'
@@ -9,6 +9,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import Metric from '@/components/ui/Metric.vue'
 import DeltaPill from '@/components/ui/DeltaPill.vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import TrendChart from '@/components/charts/TrendChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import TickRing from '@/components/charts/TickRing.vue'
@@ -16,7 +17,9 @@ import Swimlane from '@/components/charts/Swimlane.vue'
 import { portalApi, systemApi, type DashboardSummary, type OperTimeline } from '@/api'
 import { currentUser, navGroups, pathOf } from '@/composables/auth'
 import { toastError } from '@/composables/toast'
-import { EASE, firstTimeInSession, gsap, motionSkipped, trackGlow } from '@/composables/motion'
+import { EASE, gsap, motionSkipped, trackGlow } from '@/composables/motion'
+import { clearWarmedDashboard, handoffPhase, takeWarmedDashboard } from '@/composables/welcome'
+import { greetingOf } from '@/utils/greeting'
 import { hasPermission } from '@/directives/permission'
 
 /* ============================================================
@@ -36,10 +39,7 @@ const SCOPE_LABEL: Record<string, string> = {
 }
 const RANGE_TEXT: Record<Range, string> = { '24h': '近 24 小时', '7d': '近 7 天', '30d': '近 30 天' }
 
-const greeting = computed(() => {
-  const h = new Date().getHours()
-  return h < 6 ? '夜深了' : h < 12 ? '上午好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好'
-})
+const greeting = computed(() => greetingOf())
 const now = new Date()
 const dateStamp = `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日 · 星期${'日一二三四五六'[now.getDay()]}`
 
@@ -116,6 +116,9 @@ async function load() {
   }
 }
 
+/** 数据到齐的判定：骨架层据此让位。摘要对象到手即视为就绪 */
+const primed = computed(() => Boolean(summary.value))
+
 async function loadTimeline() {
   if (!canTimeline.value) return
   try {
@@ -134,43 +137,68 @@ function openLane(module: string) {
   if (operLogPath.value) router.push({ path: operLogPath.value, query: { keyword: module } })
 }
 
-/* ── 开场编排：本会话首次进入，卡片从中心弹簧飞出落位 ── */
+/* ── 组装编排：交接进入时卡片带着骨架从中心轻微弹簧落位 ────────────
+   卡片不再先隐身：骨架层已经把内容占满，位移 + 缩放足以表达组装，
+   藏起来再飞出来就是白屏的来源。 */
 const grid = ref<HTMLElement | null>(null)
+
+/** 交接期标记在首帧就要在（模板已绑），供 CSS 跳过「藏卡片」兜底 */
+const handoff = handoffPhase.value === 'arriving'
+
 function playEntrance() {
-  if (!firstTimeInSession('dashboard') || motionSkipped()) return
-  nextTick(() => {
-    const box = grid.value?.getBoundingClientRect()
-    const cards = grid.value ? [...grid.value.querySelectorAll<HTMLElement>('.bento')] : []
-    if (!box || !cards.length) return
-    const cx = box.left + box.width / 2
-    const cy = box.top + Math.min(box.height / 2, 300)
-    cards.forEach((el, i) => {
-      const r = el.getBoundingClientRect()
-      gsap.from(el, {
-        x: cx - (r.left + r.width / 2),
-        y: cy - (r.top + r.height / 2),
-        scale: 0.82,
-        opacity: 0,
-        duration: 0.72,
-        ease: EASE.settle,
-        delay: 0.05 + i * 0.05,
-        clearProps: 'transform,opacity',
-      })
+  if (!handoff || motionSkipped()) return
+  const gridEl = grid.value
+  if (!gridEl) return
+  const cards = [...gridEl.querySelectorAll<HTMLElement>('.bento')]
+  if (!cards.length) return
+  const box = gridEl.getBoundingClientRect()
+  if (!box.width) return
+  const cx = box.left + box.width / 2
+  const cy = box.top + Math.min(box.height / 2, 300)
+  // 起始态同步写好：from 的起始值要等下一帧才建立，中间不能闪出已落位的卡片
+  cards.forEach((el, i) => {
+    const r = el.getBoundingClientRect()
+    gsap.set(el, {
+      x: (cx - (r.left + r.width / 2)) * 0.42,
+      y: (cy - (r.top + r.height / 2)) * 0.42,
+      scale: 0.94,
     })
   })
+  gsap.to(cards, {
+    x: 0,
+    y: 0,
+    scale: 1,
+    duration: 0.5,
+    ease: EASE.settle,
+    stagger: { each: 0.035, from: 'center' },
+    clearProps: 'transform',
+  })
+  // 页头同步显形：欢迎链的铭牌压在这个位置上，标题必须先在位
+  const head = gridEl.parentElement?.querySelector<HTMLElement>('.page-head')
+  if (head) gsap.fromTo(head, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.42, ease: EASE.reveal, clearProps: 'transform' })
 }
 
-watch(range, load)
+watch(range, () => {
+  clearWarmedDashboard()
+  load()
+})
 
 onMounted(() => {
-  load()
+  // 预热命中就同步渲染：首帧即真内容，不需要等接口
+  const warmed = takeWarmedDashboard<DashboardSummary>(range.value)
+  if (warmed) {
+    summary.value = warmed
+    loading.value = false
+  } else {
+    load()
+  }
   loadTimeline()
   playEntrance()
 })
 </script>
 
 <template>
-  <div class="page dashboard">
+  <div :class="['page dashboard', { 'is-handoff': handoff }]">
     <header class="page-head reveal">
       <div class="page-head-main">
         <span class="page-date">{{ dateStamp }}</span>
@@ -189,19 +217,22 @@ onMounted(() => {
         </div>
         <div class="hero-body">
           <div class="hero-figure">
-            <Metric :value="summary ? loginTotal : null" unit="次" size="xl" />
+            <Metric v-if="primed" :value="loginTotal" unit="次" size="xl" />
+            <Skeleton v-else :h="56" w="72%" :radius="12" />
             <div class="hero-delta">
-              <DeltaPill :value="loginDelta" :fresh="loginFresh" label="较上一等长周期" />
-              <span class="faint">较上一周期</span>
+              <DeltaPill v-if="primed" :value="loginDelta" :fresh="loginFresh" label="较上一等长周期" />
+              <Skeleton v-else :h="22" w="46%" :radius="999" />
+              <span v-if="primed" class="faint">较上一周期</span>
             </div>
             <dl class="hero-readouts">
-              <div><dt>峰值</dt><dd class="tnum">{{ peak }}</dd></div>
-              <div><dt>均值</dt><dd class="tnum">{{ avg }}</dd></div>
+              <div><dt>峰值</dt><dd v-if="primed" class="tnum">{{ peak }}</dd><Skeleton v-else :h="15" w="30" /></div>
+              <div><dt>均值</dt><dd v-if="primed" class="tnum">{{ avg }}</dd><Skeleton v-else :h="15" w="30" /></div>
               <div><dt>范围</dt><dd>{{ RANGE_TEXT[range] }}</dd></div>
             </dl>
           </div>
           <div class="hero-chart">
-            <TrendChart :values="trend" :labels="trendLabels" :height="212" unit=" 次" primary-label="登录" tone="ink" />
+            <TrendChart v-if="primed" :values="trend" :labels="trendLabels" :height="212" unit=" 次" primary-label="登录" tone="ink" />
+            <Skeleton v-else :h="212" :radius="14" />
           </div>
         </div>
         <div class="hero-actions">
@@ -217,12 +248,13 @@ onMounted(() => {
       <!-- 侧块：在线用户 / 接口调用 -->
       <section class="bento bento-side">
         <div class="side-top">
-          <span class="side-label">在线用户 · 近 1 小时</span>
+          <span class="side-label">在线用户 · 实时</span>
           <span class="side-ico m-groove"><Icon name="activity" :size="16" /></span>
         </div>
-        <Metric :value="online?.value" unit="人" size="l" />
+        <Metric v-if="primed" :value="online?.value" unit="人" size="l" />
+        <Skeleton v-else :h="40" w="52%" :radius="10" />
         <div class="side-foot">
-          <span class="muted">{{ online?.sub || '最近 1 小时登录' }}</span>
+          <span class="muted">{{ online?.sub || '当前有效会话' }}</span>
         </div>
       </section>
       <section class="bento bento-side">
@@ -230,10 +262,12 @@ onMounted(() => {
           <span class="side-label">接口调用 · 近 24 小时</span>
           <span class="side-ico m-groove"><Icon name="log" :size="16" /></span>
         </div>
-        <Metric :value="api?.value" unit="次" size="l" />
+        <Metric v-if="primed" :value="api?.value" unit="次" size="l" />
+        <Skeleton v-else :h="40" w="52%" :radius="10" />
         <div class="side-foot">
           <span class="muted">{{ api?.sub || '最近 24 小时操作' }}</span>
-          <DeltaPill v-if="api" :value="api.delta" :up="api.up" :fresh="api.fresh" label="较前 24 小时" />
+          <DeltaPill v-if="primed && api" :value="api.delta" :up="api.up" :fresh="api.fresh" label="较前 24 小时" />
+          <Skeleton v-else :h="18" w="38%" :radius="999" />
         </div>
       </section>
 
@@ -243,7 +277,8 @@ onMounted(() => {
           <SectionLabel title="近 7 天操作量" />
           <span class="bento-meta tnum">{{ dailyTotal }} 次</span>
         </div>
-        <BarChart :values="daily.map(d => Number(d.total))" :failed="daily.map(d => Number(d.failed))" :labels="dailyLabels" :highlight="daily.length ? daily.length - 1 : null" unit=" 次" />
+        <BarChart v-if="primed" :values="daily.map(d => Number(d.total))" :failed="daily.map(d => Number(d.failed))" :labels="dailyLabels" :highlight="daily.length ? daily.length - 1 : null" unit=" 次" />
+        <Skeleton v-else :h="168" :radius="14" />
       </section>
 
       <!-- 03 操作成功率 -->
@@ -253,10 +288,11 @@ onMounted(() => {
           <span class="bento-meta">{{ RANGE_TEXT[range] }}</span>
         </div>
         <div class="ring-wrap">
-          <TickRing :value="summary?.successRate" label="成功" :size="164" />
+          <TickRing v-if="primed" :value="summary?.successRate" label="成功" :size="164" />
+          <Skeleton v-else :h="164" :radius="999" />
           <dl class="ring-readouts">
-            <div><dt>操作</dt><dd class="tnum">{{ summary?.trendTotal ?? '—' }}</dd></div>
-            <div><dt>成功率</dt><dd class="tnum">{{ summary?.successRate ?? '—' }}%</dd></div>
+            <div><dt>操作</dt><dd v-if="primed" class="tnum">{{ summary?.trendTotal ?? '—' }}</dd><Skeleton v-else :h="15" w="34" /></div>
+            <div><dt>成功率</dt><dd v-if="primed" class="tnum">{{ summary?.successRate ?? '—' }}%</dd><Skeleton v-else :h="15" w="42" /></div>
           </dl>
         </div>
       </section>
@@ -267,14 +303,21 @@ onMounted(() => {
           <SectionLabel title="数据权限分布" />
           <span class="bento-meta">按角色范围</span>
         </div>
-        <ul v-if="scopeItems.length" class="share-list">
+        <ul v-if="primed && scopeItems.length" class="share-list">
           <li v-for="item in scopeItems" :key="item.label" :class="`cat-${item.cat}`">
             <span class="share-label">{{ item.label }}</span>
             <span class="share-track"><i :style="{ width: `${item.w}%` }" /></span>
             <span class="share-value tnum">{{ item.value }}<small> 人 · {{ item.pct }}%</small></span>
           </li>
         </ul>
-        <EmptyState v-else-if="!loading" title="暂无角色数据" icon="role" />
+        <div v-else-if="!primed" class="share-skeleton">
+          <div v-for="i in 4" :key="i" class="share-skeleton-row">
+            <Skeleton :h="12" w="62" :radius="999" />
+            <Skeleton :h="8" :radius="999" />
+            <Skeleton :h="12" w="54" :radius="999" />
+          </div>
+        </div>
+        <EmptyState v-else title="暂无角色数据" icon="role" />
       </section>
 
       <!-- 05 今日操作泳道 -->
@@ -284,6 +327,7 @@ onMounted(() => {
           <button v-if="operLogPath" type="button" class="pill-btn" @click="router.push(operLogPath)">操作日志 <Icon name="arrowRight" :size="14" /></button>
         </div>
         <Swimlane v-if="timeline?.lanes.length" :lanes="timeline.lanes" :now-sec="timeline.nowSec" compact :max-lanes="5" @select="openLane($event.lane.module)" />
+        <Skeleton v-else-if="!timeline" :h="132" :radius="14" />
         <EmptyState v-else title="今天还没有操作记录" icon="clock" />
       </section>
 
@@ -293,15 +337,26 @@ onMounted(() => {
           <SectionLabel title="最近登录" />
         </div>
         <div class="activity-list">
-          <div v-for="(a, i) in summary?.activities ?? []" :key="i" class="activity">
-            <Avatar :name="String(a.who)" :size="30" />
-            <div class="activity-main">
-              <div class="ellipsis"><b>{{ a.who }}</b> <span class="muted">{{ a.target }}</span></div>
-              <div class="faint mono-time">{{ a.time }}</div>
+          <template v-if="primed">
+            <div v-for="(a, i) in summary?.activities ?? []" :key="i" class="activity">
+              <Avatar :name="String(a.who)" :size="30" />
+              <div class="activity-main">
+                <div class="ellipsis"><b>{{ a.who }}</b> <span class="muted">{{ a.target }}</span></div>
+                <div class="faint mono-time">{{ a.time }}</div>
+              </div>
+              <Tag :tone="a.tint === 'ok' ? 'ok' : 'danger'" dot>{{ a.tint === 'ok' ? '成功' : '失败' }}</Tag>
             </div>
-            <Tag :tone="a.tint === 'ok' ? 'ok' : 'danger'" dot>{{ a.tint === 'ok' ? '成功' : '失败' }}</Tag>
+            <EmptyState v-if="!(summary?.activities ?? []).length" title="暂无登录记录" icon="clock" />
+          </template>
+          <div v-else class="activity-skeleton">
+            <div v-for="i in 3" :key="i" class="activity-skeleton-row">
+              <Skeleton :h="30" :radius="999" />
+              <div class="activity-skeleton-text">
+                <Skeleton :h="12" w="58%" :radius="999" />
+                <Skeleton :h="10" w="34%" :radius="999" />
+              </div>
+            </div>
           </div>
-          <EmptyState v-if="!loading && !(summary?.activities ?? []).length" title="暂无登录记录" icon="clock" />
         </div>
       </section>
 

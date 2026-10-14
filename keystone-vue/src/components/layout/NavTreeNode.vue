@@ -7,6 +7,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import { isCollapsed } from '@/composables/navCollapse'
+import { navBodyEnter, navBodyLeave } from '@/composables/motion'
 import type { NavLeaf } from '@/data'
 
 defineOptions({ name: 'NavTreeNode' })
@@ -61,16 +62,18 @@ function size(icon: number) {
           <span class="nav-label">{{ node.label }}</span>
           <Icon class="nav-caret" :class="{ 'is-open': open(node) }" name="chevronDown" :size="Math.max(11, 14 - depth)" />
         </button>
-        <div v-show="open(node)" class="nav-branch-body">
-          <NavTreeNode
-            :nodes="node.children"
-            :depth="depth + 1"
-            :collapsed="collapsed"
-            :force-open="forceOpen"
-            @go="path => emit('go', path)"
-            @toggle="child => emit('toggle', child)"
-          />
-        </div>
+        <Transition :css="false" @enter="navBodyEnter" @leave="navBodyLeave">
+          <div v-show="open(node)" class="nav-branch-body">
+            <NavTreeNode
+              :nodes="node.children"
+              :depth="depth + 1"
+              :collapsed="collapsed"
+              :force-open="forceOpen"
+              @go="path => emit('go', path)"
+              @toggle="child => emit('toggle', child)"
+            />
+          </div>
+        </Transition>
       </div>
 
       <!-- 叶子：点击跳转 -->

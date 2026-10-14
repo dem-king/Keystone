@@ -1,5 +1,6 @@
 package com.keystone.system.service;
 
+import com.keystone.framework.security.TokenStore;
 import com.keystone.system.mapper.DashboardMapper;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,11 @@ import java.util.Map;
 public class DashboardService {
 
     private final DashboardMapper mapper;
+    private final TokenStore tokenStore;
 
-    public DashboardService(DashboardMapper mapper) {
+    public DashboardService(DashboardMapper mapper, TokenStore tokenStore) {
         this.mapper = mapper;
+        this.tokenStore = tokenStore;
     }
 
     public Map<String, Object> summary(String range) {
@@ -64,18 +67,18 @@ public class DashboardService {
 
     private List<Map<String, Object>> stats() {
         long users = mapper.countUsers();
-        long online = mapper.countOnlineUsers();
+        // 在线用户按「有效会话去重」统计：同一账号多次登录只计 1 人（旧口径数登录日志条数，会重复计数）
+        long online = tokenStore.countOnlineUsers();
         long roles = mapper.countRoles();
         long apiCalls = mapper.countApiCalls();
 
         long usersNew = mapper.countUsersCreatedSince1d();
-        long online2h = mapper.countOnlineUsers2h();
         long rolesNew = mapper.countRolesCreatedSince1d();
         long apiPrev = mapper.countApiCallsPrev24h();
 
         return List.of(
                 stat("users", "用户总数", users, "users", "ok", delta(users, usersNew)),
-                stat("online", "在线用户", online, "monitor", "info", delta(online, online2h)),
+                stat("online", "在线用户", online, "monitor", "info", new double[]{0, 0}),
                 stat("roles", "角色数量", roles, "shield", "warn", delta(roles, rolesNew)),
                 stat("api", "24h 接口调用", apiCalls, "command", "purple", deltaCompare(apiCalls, apiPrev)),
                 stat("menus", "菜单项", mapper.countMenus(), "menu", "info", delta(1, 0)),
@@ -113,7 +116,7 @@ public class DashboardService {
     private String subText(String key) {
         return switch (key) {
             case "users" -> "当前启用账号";
-            case "online" -> "最近 1 小时登录";
+            case "online" -> "当前有效会话";
             case "roles" -> "已启用角色";
             case "api" -> "最近 24 小时操作";
             case "menus" -> "目录 / 菜单 / 按钮";

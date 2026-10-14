@@ -16,7 +16,7 @@ import {
   syncCollapsed,
   toggleCollapsed,
 } from '@/composables/navCollapse'
-import { slideThumb } from '@/composables/motion'
+import { navBodyEnter, navBodyLeave, slideThumb } from '@/composables/motion'
 import { APP } from '@/data'
 import type { NavLeaf } from '@/data'
 
@@ -244,16 +244,18 @@ watch(navGroups, groups => {
         </button>
 
         <!-- single 分组无标题、始终展开；有标题的分组才受折叠控制 -->
-        <div v-show="group.single || groupOpen(group.key)" class="nav-group-body">
-          <NavTreeNode
-            :nodes="group.items"
-            :depth="0"
-            :collapsed="appearance.railCollapsed"
-            :force-open="searching"
-            @go="go"
-            @toggle="toggleBranch"
-          />
-        </div>
+        <Transition :css="false" @enter="navBodyEnter" @leave="navBodyLeave">
+          <div v-show="group.single || groupOpen(group.key)" class="nav-group-body">
+            <NavTreeNode
+              :nodes="group.items"
+              :depth="0"
+              :collapsed="appearance.railCollapsed"
+              :force-open="searching"
+              @go="go"
+              @toggle="toggleBranch"
+            />
+          </div>
+        </Transition>
       </div>
     </nav>
 

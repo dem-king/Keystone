@@ -66,6 +66,15 @@ npm run dev
 
 浏览器访问 `http://localhost:5180`，后端本地端口为 `8080`；前端统一通过 `/api` 代理访问后端。
 
+### Windows 一键启动
+
+`keystone-system\start-backend.bat` 与 `keystone-vue\start-frontend.bat` 已内置本机开发所需的
+`SERVER_PORT`、`JWT_SECRET`、`DB_*`、`REDIS_*` 与 `VITE_API_PROXY_TARGET`，双击即可在独立窗口启动，
+关掉窗口即停止。适合不想每次配环境变量的场景；脚本仅供本地开发，不要用于部署。
+
+> 若本机 `8080` 已被占用（如 VPN 客户端），需同时改两处：脚本里的 `SERVER_PORT`
+> 与前端脚本里的 `VITE_API_PROXY_TARGET`，保持代理目标与后端端口一致。
+
 ### 局域网访问
 
 前端开发服务器监听所有网卡，同一局域网内的同事可直接在浏览器打开 `http://<你的内网IP>:5180`（如 `http://192.168.1.39:5180`），无需在你的电脑上做端口转发，也无需在同事电脑上装任何东西。接口请求由开发服务器在本机转发到后端，后端保持只监听 `127.0.0.1`，同事无法直连 `8080`。

@@ -72,6 +72,8 @@
 | 导航树与折叠 | `components/layout/NavTreeNode.vue`、`composables/navCollapse.ts`、`utils/navTree.ts` | 递归渲染任意层级菜单、分组折叠状态（`sessionStorage` 的 `keystone.navCollapsed`）、菜单树转换纯函数（深度上限 `MAX_MENU_DEPTH=6`） |
 | 请求与会话 | `api/http.ts`、`api/session.ts`、`composables/auth.ts`、`router/index.ts` | 响应解包、存储、401 处理、动态路由与会话清理 |
 | 外观与动效 | `composables/appearance.ts`、`motion.ts`、`focus.ts` | 主题、密度、GSAP、浮层层级与焦点 |
+| 登录转场与欢迎链 | `composables/welcome.ts`、`components/welcome/WelcomeChain.vue` | 交接状态机（idle / leaving / arriving）、点击拦截、`ARRIVE_BUDGET` 收尾、工作台数据预热；欢迎链是「星球自右上角坠落（途中由小变大）→ 到中央炸开 → 浮牌同点浮现 → 整句问候语逐字打出 → 吸附式回落页头标题位置」，粒子走 canvas（`.welcome-dust`） |
+| 首屏骨架 | `components/ui/Skeleton.vue`、`views/Dashboard.vue` | 数据未到时用等高灰条占位，卡片从第 0 帧就在位；`page.is-handoff` 期间跳过「藏卡片」兜底 |
 | 样式 | `styles/tokens.css`、`base.css`、`materials.css`、`components.css`、`instruments.css`、`layout.css`、`pages.css` | 顺序加载的七层样式 |
 
 ## 四、场景剧本
@@ -136,11 +138,28 @@
 | 部门筛选漏掉下级 / 数据范围错误 | `SystemManagementMapper`、`SystemDataScopeResolver` | `ancestors`、部门范围、分页和导出是否同口径 | 已确认 |
 | 时间差 8 小时 / 连接时区异常 | `application-dev.yml`、`DbInit` | Hikari 连接属性、`DB_TIMEZONE`、MySQL 会话 `NOW()` | 已确认 |
 | 页面过渡空白 / 后台浮层未关闭 | `composables/motion.ts` | Vue 过渡完成回调、后台状态与减少动效终态 | 已确认 |
+| 登录后首屏白一下再出内容 | `playShellEntrance`、`Dashboard.playEntrance`、`pageEnter` | 别用 `opacity: 0` 表达组装：改骨架等高占位，卡片只做位移；整框不参与淡入（舞台底一直在） | 已确认 |
+| SVG 虚线拖尾不生效 / 属性被忽略 | `motion.ts`、`WelcomeChain.vue` | GSAP 把 `stroke-dasharray/dashoffset` 写成**内联样式**，优先级高于 SVG 表现属性，`setAttribute` 被静默忽略，必须写 `path.style.*` | 已确认 |
+| 欢迎动效「看不出来」/ 视觉变化为零 | `WelcomeChain.vue` | 浮牌若与真实标题同字号同色又精确压在标题上，用户看到的还是原标题。浮牌必须有玻璃底与投影，且播放期间隐藏真实 `.page-title` | 已确认 |
+| 归位落点判定误报偏了几十像素 | 验证脚本 | `.page-title` 是 `<h1>` 块元素，盒宽 > 文字宽，用「盒中心」比较会误判。归位要比**文字起始边**（左边缘 + 纵向中心） | 已确认 |
+| 入场动画被视口切边 | `WelcomeChain.vue` | 抛物线的顶点比起点更高，起点贴顶会冲出上沿。起点下移到 `(vw-150, 124)`；断言里有「飞行全程不出视口」兜底 | 已确认 |
+| 问候语「没经过打字效果」 | `WelcomeChain.vue` | 模板预渲染了 `下午好，`，只有用户名在打。整句一起 `typeOut`；牌宽会随打字变化，每写一个字要重新居中 | 已确认 |
+| 粒子在浅色主题下看不见 | `WelcomeChain.vue` | 白底上用 `lighter` 会把亮色洗成白。按主题切合成模式：深色 `lighter` + 亮青柠，浅色 `source-over` + 深色 | 已确认 |
+| 动效断言「末帧」其实是中间帧 | 验证脚本 | 链条变长后，切路后固定 `sleep` 会在半路截断日志，落点/接管等断言全线误报。改为等欢迎层自行卸载再读 | 已确认 |
+| 归位后交叉淡化时「文字跳一下」 | `WelcomeChain.vue` | 量标题的时机太早：`pageEnter` 的页面 `scale 0.994→1`（差 4px）与页头 `y:8→0`（差 8px）没跑完就量。把测量推迟到入场结束后，实测偏差归零 | 已确认 |
+| 欢迎层元素在页面左上角被看到 | `WelcomeChain.vue` | 基准位置要等坠落结束才量，在那之前浮牌停在 `(0,0)`；`opacity: 0` 必须在挂载第一帧设置，不能等到测量时 | 已确认 |
+| `--slow-api` 拦截后接口永不返回 | `scripts/shot-welcome-chain.mjs` | `Fetch.requestPaused` 是**事件**（无 id），改 `cdp.send` 接不到。客户端需支持 `on()` 注册事件处理器，延迟后再 `continueRequest` | 已确认 |
+| 动效分镜每帧都「超时」 | `scripts/shot-welcome-chain.mjs` | 一张截图耗时约 400ms，先抓别的帧会吃掉后续时间窗。改为单遍按序采集：命中即抓，抓完继续用当前状态匹配下一帧 | 已确认 |
+| 变换矩阵解析出 NaN | 验证脚本 | 代码在模板字符串里，正则的 `\(` 会被求值成 `(`，捕获组内容带上括号导致 `Number()` 得 NaN。按括号切分即可，别用正则 | 已确认 |
+| 收尾时线条闪一帧全亮 | `WelcomeChain.vue` | `clearProps: 'all'` 会连 `opacity: 0` 一起清掉，CSS 默认值会让线条复现。先显式压 opacity 0 + `removeAttribute('d')`，再只 clear 指定属性 | 已确认 |
+| 打字机先闪一下全名 | `typeOut` | 它首帧会 `write('')` 清空后重打，模板里不要预渲染完整文本 | 已确认 |
+| 动效播到一半被掐断 | `AppShell.vue` 欢迎层卸载 | 卸载时机由链条 `emit('done')` 决定，不用 `setTimeout` 猜时长；另留安全阀 | 已确认 |
+| 铭牌定位到错误位置 / 量到 0 宽 | `WelcomeChain.vue` | 外壳比路由内容先挂载，`.page-title` 尚不存在，需轮询等待后再量 | 已确认 |
 | 读数停在 0 / 动画停在中途 | `Odometer.vue`、`motion.ts` | 后台标签页 rAF 不触发：读数用定时器兜底，GSAP 补间在切到后台时走完 | 已确认 |
 | 登录成功后停在对勾圆环 | `Login.vue` | 进入外壳的导航被取消（会话过期等）时须恢复登录按钮 | 已确认 |
 | 抽屉内确认框被挡 / Escape 连带关闭 | `focus.ts`、`Modal.vue`、`Drawer.vue`、`Select.vue` | 打开顺序、公共层级、最上层焦点与事件 | 已确认 |
 | 预览其他文件无代码 / 菜单 SQL 不匹配 | `GeneratorService`、`Generator.vue` | 每份文件的 `code`、当前菜单字段和类型 | 已确认 |
-| 登录日志来源 / 客户端列为空 | `AuthMapper.insertLoginLog`、`ClientInfoResolver` | 写入端是否采集 `ip / location / browser / os`；存量旧记录为 NULL，仅新记录有值 | 已确认 |
+| 登录日志来源列为空 / 全是 127.0.0.1 | `AuthMapper.insertLoginLog`、`ClientInfoResolver` | 写入端是否采集 `ip / location / browser / os`；本机访问应回退为 `192.168.x.x`（若仍 127 检查 `localAddress()` 是否探测失败）；同事经代理访问若记成服务器 IP，检查 vite `xfwd` 是否已重启生效；存量旧记录为 NULL，仅新记录有值 | 已确认 |
 
 ## 八、权限标识速查
 
@@ -174,7 +193,7 @@
 - 一级分组同样可折叠。可见页面总数超过 `AUTO_COLLAPSE_THRESHOLD=20` 进入紧凑模式，自动收起排在 `KEEP_OPEN_GROUPS=2` 之后的分组；当前页分组与搜索态强制展开。手动折叠存 `keystone.navCollapsed`，手动展开存 `keystone.navExpanded`，两者共同覆盖自动策略。
 - 菜单搜索在侧边栏内跨层级匹配（非隐藏入口）；Ctrl+K 命令面板覆盖同样的页面集合，两者共用 `navLeaves` 的深度展开结果。
 - 新增业务菜单只需在 `sys_menu` 写 `parent_id` 自关联，并在 `auth.ts` 的 `COMPONENT_MAP` 登记组件路径，无需改动导航组件。
-- 客户端信息（IP、地点、浏览器、系统）由 `keystone-framework` 的 `com.keystone.framework.web.ClientInfoResolver` 从当前请求统一采集，登录日志与操作日志共用：IP 取 `X-Forwarded-For` → `X-Real-IP` → 直连地址；地点仅标注「本机 / 内网」（公网留空，待接地理库）；无请求上下文时字段记 NULL。
+- 客户端信息（IP、地点、浏览器、系统）由 `keystone-framework` 的 `com.keystone.framework.web.ClientInfoResolver` 从当前请求统一采集，登录日志与操作日志共用：IP 取 `X-Forwarded-For`（首段，跳过 unknown）→ `X-Real-IP` → 直连地址，**结果为回环地址时回退本机网卡真实 IPv4**（`localAddress()`：非虚拟适配器私网优先，跳过 OpenVPN TAP / Clash 隧道等虚拟网卡；探测不到保留回环值）；地点仅标注「本机 / 内网」（公网留空，待接地理库）；无请求上下文时字段记 NULL。前端 `vite.config.ts` 的 `/api` 代理已开 `xfwd: true`，局域网同事经代理访问时后端凭 `X-Forwarded-For` 记录其真实 IP。
 
 <!-- MANUAL-NOTES-START -->
 ## 十、人工维护备注

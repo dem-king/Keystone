@@ -16,6 +16,8 @@
   min-height: 560px;
   display: grid;
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  /* 导航轨收成图标条时列宽平滑滑动，工作区随动 */
+  transition: grid-template-columns .38s var(--ease-premium);
   overflow: clip;
   border: 10px solid var(--frame);
   border-radius: 38px;
@@ -28,7 +30,8 @@
 }
 .app-frame.is-collapsed { --rail-w: 76px; }
 
-/* 入场兜底隐藏：GSAP 就位前不让元素以终态闪现 */
+/* 入场兜底隐藏：GSAP 就位前不让元素以终态闪现。
+   只兜导航与顶栏两块；框体本身不藏——舞台底一直在，整框藏起来就是白屏。 */
 .app-frame:not(.is-entrance-ready) .rail-brand,
 .app-frame:not(.is-entrance-ready) .nav-group,
 .app-frame:not(.is-entrance-ready) .topbar > * { opacity: 0; }
@@ -49,6 +52,7 @@
   height: var(--topbar-h);
   padding: 0 18px;
   flex: none;
+  transition: gap .38s var(--ease-premium), padding .38s var(--ease-premium);
 }
 .brand-mark {
   display: inline-flex;
@@ -69,7 +73,13 @@
   background: var(--lime);
   box-shadow: 0 0 0 4px rgba(130, 221, 45, .2), 0 0 12px rgba(130, 221, 45, .6);
 }
-.brand-text { min-width: 0; }
+/* 品牌文字与导航标签：收成图标条时「先淡出再塌缩宽度」，展开时反过来 */
+.brand-text {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  transition: opacity .2s ease .08s, max-width .38s var(--ease-premium);
+}
 .brand-name { font-size: 15px; font-weight: 720; letter-spacing: -.02em; white-space: nowrap; }
 .brand-sub { font-size: 10px; letter-spacing: .08em; color: var(--ink-soft); white-space: nowrap; text-transform: uppercase; }
 
@@ -81,7 +91,10 @@
   overflow-x: clip;
   padding: 8px 12px 16px;
 }
-.nav-group + .nav-group { margin-top: 14px; }
+.nav-group + .nav-group {
+  margin-top: 14px;
+  transition: margin-top .38s var(--ease-premium), padding-top .38s var(--ease-premium);
+}
 .nav-group-title {
   padding: 6px 10px;
   font-size: 11px;
@@ -89,6 +102,9 @@
   letter-spacing: .06em;
   color: var(--ink-faint);
   white-space: nowrap;
+  max-height: 42px;
+  overflow: hidden;
+  transition: opacity .2s ease .08s, max-height .38s var(--ease-premium), padding .38s var(--ease-premium);
 }
 .nav-list { position: relative; display: flex; flex-direction: column; gap: 2px; }
 
@@ -120,14 +136,21 @@
   text-align: left;
   white-space: nowrap;
   transform-origin: 50% 60%;
-  transition: color .2s ease, opacity .2s ease;
+  transition: color .2s ease, opacity .2s ease, gap .38s var(--ease-premium), padding .38s var(--ease-premium);
 }
 .nav-item .nav-ico { color: var(--ink-soft); transition: color .2s ease; }
 .nav-item:hover { color: var(--ink); }
 .nav-item.is-active { color: var(--ink); font-weight: 650; }
 .nav-item.is-active .nav-ico { color: var(--blue); }
 .nav-item:focus-visible { outline-offset: -2px; }
-.nav-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: opacity .2s ease .08s, max-width .38s var(--ease-premium);
+}
 /* 兄弟项让位：被指向的那一个更清楚 */
 @media (hover: hover) {
   .nav-list:has(.nav-item:hover) .nav-item:not(:hover):not(.is-active) { opacity: .62; }
@@ -208,6 +231,7 @@
   margin-left: 15px;
   padding-left: 8px;
   border-left: 1px solid var(--line);
+  transition: margin-left .38s var(--ease-premium), padding-left .38s var(--ease-premium);
 }
 .nav-branch-body .nav-item-nested {
   height: 34px;
@@ -248,9 +272,20 @@
 .nav-group-toggle:not(.is-open) { color: var(--ink-faint); }
 .nav-group-body { position: relative; }
 
+/* 收成图标条：文字「先淡出、再塌缩宽度」，图标随之滑向中心，不瞬变 */
 .app-frame.is-collapsed .brand-text,
-.app-frame.is-collapsed .nav-label,
-.app-frame.is-collapsed .nav-group-title,
+.app-frame.is-collapsed .nav-label {
+  max-width: 0;
+  opacity: 0;
+  transition: opacity .12s ease, max-width .38s var(--ease-premium);
+}
+.app-frame.is-collapsed .nav-group-title {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  transition: opacity .12s ease, max-height .38s var(--ease-premium), padding .38s var(--ease-premium);
+}
 .app-frame.is-collapsed .rail-foot .nav-label { display: none; }
 /* 收成图标条时不保留缩进线，避免与图标挤在一起 */
 .app-frame.is-collapsed .nav-branch-body {
@@ -259,8 +294,8 @@
   border-left: 0;
 }
 .app-frame.is-collapsed .rail-search { display: none; }
-.app-frame.is-collapsed .rail-brand { padding: 0; justify-content: center; }
-.app-frame.is-collapsed .nav-item { justify-content: center; padding: 0; }
+.app-frame.is-collapsed .rail-brand { padding: 0; gap: 0; justify-content: center; }
+.app-frame.is-collapsed .nav-item { justify-content: center; gap: 0; padding: 0; }
 .app-frame.is-collapsed .nav-group + .nav-group { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
 /* ── 工作区 ─────────────────────────────────────────────────── */
@@ -461,8 +496,8 @@
   .app-frame.is-mobile-open .rail { translate: 0 0; }
   .app-frame.is-collapsed { --rail-w: 0px; }
   .app-frame.is-collapsed .brand-text,
-  .app-frame.is-collapsed .nav-label,
-  .app-frame.is-collapsed .nav-group-title { display: revert; }
+  .app-frame.is-collapsed .nav-label { max-width: 100%; opacity: 1; }
+  .app-frame.is-collapsed .nav-group-title { max-height: none; padding-top: 6px; padding-bottom: 6px; opacity: 1; }
   .rail-scrim { position: fixed; inset: 0; z-index: 105; background: var(--overlay); }
   .page { padding: 18px 16px 32px; }
   .page-title { font-size: 22px; }

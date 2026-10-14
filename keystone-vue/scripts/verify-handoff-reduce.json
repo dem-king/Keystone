@@ -1,0 +1,53 @@
+[
+ {
+  "t": 6,
+  "cardOp": 0,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 15,
+  "cardOp": 1,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 210,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   278,
+   212
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ }
+]

@@ -323,8 +323,9 @@
 .quick-go { color: var(--ink-faint); transition: color .2s ease; }
 .quick-link:hover .quick-go { color: var(--blue); }
 
-/* 并列卡入场兜底 */
-.page:not(.is-entrance-ready) .bento { opacity: 0; }
+/* 并列卡入场兜底：只兜普通切页。交接期（is-handoff）不适用——
+   那时卡片带着骨架从第 0 帧就该可见，藏起来等动画就是白屏 */
+.page:not(.is-entrance-ready):not(.is-handoff) .bento { opacity: 0; }
 
 @media (max-width: 1280px) {
   .bento-hero { grid-column: 1 / -1; grid-row: auto; }
@@ -503,3 +504,178 @@
 .cmd-ask-hint { margin: 0; font-size: 11.5px; }
 .cmd-ask-results { display: flex; flex-direction: column; gap: 8px; }
 .dash-net { height: 232px; border: 0; box-shadow: none; background: none; border-radius: var(--r-lg); }
+
+/* ── 欢迎链 · 星球坠落 + 用户名归位（结 Crystallize） ───────────────
+   整层挂在 body 上、pointer-events: none，不吃任何点击。
+   运动主体先是「星球」后是「浮牌」，两者的 CSS 位置都由脚本用 transform 驱动，
+   所以不占布局；浮牌的基准位置钉在真实页头标题上，落回来时严丝合缝。
+   注意：没有全屏遮罩，也没有去往右上角的线条。 */
+.welcome-layer { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+.welcome-dust { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* 坠落的星球：一颗带内高光的发光球，坠落时靠尾迹粒子拉出轨迹 */
+.welcome-orb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, #d8ff9e 28%, #82dd2d 58%, rgba(130, 221, 45, .28) 76%, rgba(130, 221, 45, 0) 84%);
+  box-shadow: 0 0 22px 5px rgba(130, 221, 45, .42), 0 0 58px 16px rgba(130, 221, 45, .2);
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+:root[data-theme="dark"] .welcome-orb {
+  box-shadow: 0 0 26px 6px rgba(168, 240, 90, .5), 0 0 70px 20px rgba(168, 240, 90, .22);
+}
+
+/* 炸开的冲击波环：一圈细描边，快速扩散后淡尽 */
+.welcome-shock {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  border: 2px solid var(--lime);
+  box-shadow: 0 0 26px 4px rgba(130, 221, 45, .45), inset 0 0 22px 2px rgba(130, 221, 45, .3);
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+/* 副环：更细更淡、慢半拍，与主环拉开层次 */
+.welcome-shock--thin { border-width: 1px; box-shadow: none; }
+/* 炸开的柔光闪：一团径向光晕，把「爆」的光量铺满中心区域 */
+.welcome-flash {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 560px;
+  height: 560px;
+  margin: -280px 0 0 -280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226, 255, 178, .85) 0%, rgba(130, 221, 45, .32) 34%, rgba(130, 221, 45, 0) 68%);
+  opacity: 0;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+:root[data-theme="dark"] .welcome-shock {
+  box-shadow: 0 0 30px 5px rgba(168, 240, 90, .5), inset 0 0 24px 3px rgba(168, 240, 90, .34);
+}
+:root[data-theme="dark"] .welcome-flash {
+  background: radial-gradient(circle, rgba(214, 250, 160, .8) 0%, rgba(168, 240, 90, .3) 34%, rgba(168, 240, 90, 0) 68%);
+}
+
+.welcome-plate {
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 22px 15px;
+  /* 玻璃底单独成层：交接时先把它化掉、只留文字，才能与真实标题做等量交叉 */
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+.welcome-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-lg);
+  background: var(--float-bg);
+  box-shadow: var(--float-inset), var(--e3);
+  backdrop-filter: blur(18px) saturate(1.3);
+  overflow: hidden;
+  z-index: 0;
+}
+/* 玻璃光泽：浮牌浮现时一道高光自左向右扫过，只播一次 */
+.welcome-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 36%, rgba(255, 255, 255, .6) 50%, transparent 64%);
+  transform: translateX(-130%);
+  opacity: 0;
+}
+.welcome-plate.is-sheen .welcome-glass::after {
+  opacity: 1;
+  animation: welcome-sheen .95s ease-out .08s 1 forwards;
+}
+@keyframes welcome-sheen { to { transform: translateX(130%); } }
+:root[data-theme="dark"] .welcome-glass::after {
+  background: linear-gradient(105deg, transparent 36%, rgba(255, 255, 255, .3) 50%, transparent 64%);
+}
+/* 打字光标：恒占位（归位测量不受宽度跳变影响），只在打字期间亮并闪烁 */
+.welcome-line { position: relative; z-index: 1; display: inline-flex; align-items: center; }
+.welcome-caret {
+  width: 3px;
+  height: .92em;
+  margin-left: 5px;
+  border-radius: 2px;
+  background: var(--lime);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.welcome-plate.is-typing .welcome-caret {
+  opacity: 1;
+  animation: welcome-caret-blink .85s steps(1) infinite;
+}
+@keyframes welcome-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: .12; } }
+.welcome-greet,
+.welcome-rule { position: relative; z-index: 1; }
+.welcome-greet {
+  /* 字号 / 字重 / 字距与 .page-title 完全一致：归位时才能严丝合缝地接上 */
+  font-size: 28px;
+  font-weight: 740;
+  line-height: 1.15;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* 一字未打时不给宽度，免得空牌先把位置撑开 */
+.welcome-greet:empty::before { content: "\200b"; }
+.welcome-rule {
+  width: 44px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--lime);
+  transform-origin: left center;
+  opacity: 0;
+}
+
+@media (max-width: 760px) {
+  .welcome-greet { font-size: 22px; }
+  .welcome-plate { padding: 11px 16px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-layer { display: none; }
+}
+
+/* ── 骨架占位 ───────────────────────────────────────────────────────
+   真实内容未到时占住同样的高度，数据到达后灰条淡出、真内容淡入，
+   位置不变——所以首屏第 0 帧就是"满的"，只有质感在变，没有空洞。 */
+.skeleton-bar {
+  display: block;
+  background: linear-gradient(90deg, var(--groove-bg) 25%, var(--hover-bg) 37%, var(--groove-bg) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar { animation: none; }
+}
+
+/* 数据区从骨架切到真实内容：真内容淡入，不做位移，避免读数跳动 */
+.slot-fade-enter-active { transition: opacity .22s ease; }
+.slot-fade-leave-active { display: none; }
+
+/* 骨架在卡片内的排布：与真实条目同栅格、同高度，数据到达后不产生位移 */
+.share-skeleton { display: flex; flex-direction: column; gap: 12px; }
+.share-skeleton-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 76px; align-items: center; gap: 12px; }
+.activity-skeleton { display: flex; flex-direction: column; gap: 14px; padding: 2px 0; }
+.activity-skeleton-row { display: flex; align-items: center; gap: 11px; }
+.activity-skeleton-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }

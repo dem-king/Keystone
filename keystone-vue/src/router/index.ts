@@ -51,7 +51,9 @@ export function resetRoutes() {
 }
 setSessionRouteReset(resetRoutes)
 
-async function ensureRoutes() {
+/** 加载菜单与权限并注册动态路由。守卫在首次导航时调用；
+ *  登录页也会提前预热它（await 网络），让切路由时守卫直接放行、不留空窗 */
+export async function ensureRoutes() {
   if (routesReady) return true
   if (routeLoad) return routeLoad
   const version = sessionVersion.value

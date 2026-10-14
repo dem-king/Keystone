@@ -36,6 +36,9 @@ export default defineConfig({
       '/api': {
         target: apiProxyTarget,
         changeOrigin: true,
+        // 转发时附加 X-Forwarded-For / X-Forwarded-Host 等头：后端凭它记录访问者的真实 IP
+        // （登录日志、操作日志）。不开启时，同事经本机代理访问，日志里只会出现代理所在机器的地址。
+        xfwd: true,
       },
     },
   },

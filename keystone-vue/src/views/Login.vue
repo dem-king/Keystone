@@ -9,7 +9,9 @@ import Checkbox from '@/components/ui/Checkbox.vue'
 import { ApiError, authApi, portalApi } from '@/api'
 import NeuralNet from '@/components/NeuralNet.vue'
 import { login } from '@/composables/auth'
-import { EASE, afterTwoFrames, gsap, motionSkipped, prefersReducedMotion, trackGlow } from '@/composables/motion'
+import { beginHandoff, finishHandoff, markArrived, prefetchDashboard } from '@/composables/welcome'
+import { EASE, afterTwoFrames, gsap, motionSkipped, playLoginExit, prefersReducedMotion, trackGlow } from '@/composables/motion'
+import { ensureRoutes } from '@/router'
 import { required, validate } from '@/utils/validate'
 import { APP } from '@/data'
 
@@ -122,13 +124,33 @@ async function submit() {
   submitting.value = true
   try {
     await login({ username: form.username.trim(), password: form.password, captcha: form.captcha.trim(), captchaUuid: captchaUuid.value }, remember.value)
+    // 无幕交接：先并行预热菜单与权限（路由守卫据此直接放行，不留空窗），
+    // 再让登录页在舞台上退场（深色画布先沉、登录卡殿后）；退场播完 + 预热完成才切路由。
+    // 工作台首屏数据也在这段等待里一并打了，落点页挂载即可同步渲染。
+    const warm = ensureRoutes().catch(() => false)
+    prefetchDashboard('24h', r => portalApi.dashboard.summary({ range: r }))
+    beginHandoff()
     await playSuccess()
+    await Promise.all([
+      new Promise<void>(resolve => {
+        const el = root.value
+        if (!el) return resolve()
+        playLoginExit(el, resolve)
+      }),
+      warm,
+    ])
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
+    // 切换前进入 arriving：工作台侧的框体浮现、导航滑入、卡片飞出从这一刻起算
+    markArrived()
     const failure = await router.replace(redirect)
-    // 进入外壳的导航被取消（如菜单加载期间会话过期）时仍停在登录页：恢复登录按钮
-    if (failure || router.currentRoute.value.name === 'login') succeeded.value = false
+    // 进入外壳的导航被取消（如菜单加载期间会话过期）时仍停在登录页：恢复登录按钮、撤回交接
+    if (failure || router.currentRoute.value.name === 'login') {
+      succeeded.value = false
+      finishHandoff()
+    }
   } catch (error) {
     succeeded.value = false
+    finishHandoff()
     formError.value = error instanceof ApiError ? error.message : '登录失败，请稍后重试'
     await refreshCaptcha()
   } finally {

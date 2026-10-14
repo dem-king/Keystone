@@ -26,6 +26,7 @@ class ClientInfoResolverTest {
     @AfterEach
     void clearContext() {
         RequestContextHolder.resetRequestAttributes();
+        ClientInfoResolver.setLocalAddressSupplierForTest(null);
     }
 
     @Test
@@ -103,6 +104,53 @@ class ClientInfoResolverTest {
     }
 
     @Test
+    void fallsBackToLocalAddressForLoopbackRequests() {
+        ClientInfoResolver.setLocalAddressSupplierForTest(() -> "192.168.10.20");
+        MockHttpServletRequest direct = new MockHttpServletRequest();
+        direct.setRemoteAddr("127.0.0.1");
+        assertThat(ClientInfoResolver.resolveIp(direct)).isEqualTo("192.168.10.20");
+
+        // 代理头传来回环地址（本机开发服务器转发）时同样回退
+        MockHttpServletRequest proxied = new MockHttpServletRequest();
+        proxied.setRemoteAddr("127.0.0.1");
+        proxied.addHeader("X-Forwarded-For", "127.0.0.1");
+        assertThat(ClientInfoResolver.resolveIp(proxied)).isEqualTo("192.168.10.20");
+    }
+
+    @Test
+    void keepsLoopbackWhenLocalAddressUnavailable() {
+        ClientInfoResolver.setLocalAddressSupplierForTest(() -> null);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("::1");
+        assertThat(ClientInfoResolver.resolveIp(request)).isEqualTo("::1");
+    }
+
+    @Test
+    void doesNotReplaceNonLoopbackAddresses() {
+        ClientInfoResolver.setLocalAddressSupplierForTest(() -> "192.168.10.20");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.9");
+        request.addHeader("X-Forwarded-For", "203.0.113.7, 10.0.0.2");
+        assertThat(ClientInfoResolver.resolveIp(request)).isEqualTo("203.0.113.7");
+    }
+
+    @Test
+    void skipsUnknownSegmentsInForwardedFor() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.9");
+        request.addHeader("X-Forwarded-For", "unknown, 203.0.113.7");
+        assertThat(ClientInfoResolver.resolveIp(request)).isEqualTo("203.0.113.7");
+    }
+
+    @Test
+    void detectsLocalIpv4AddressOnThisMachine() {
+        assertThat(ClientInfoResolver.localAddress())
+                .matches("\\d{1,3}(\\.\\d{1,3}){3}")
+                .doesNotStartWith("127.")
+                .doesNotStartWith("169.254.");
+    }
+
+    @Test
     void buildsClientInfoFromCurrentRequestContext() {
         assertThat(ClientInfoResolver.current().ip()).isNull();
 
@@ -120,13 +168,14 @@ class ClientInfoResolverTest {
 
     @Test
     void currentRequestWithoutUserAgentLeavesClientFieldsNull() {
+        ClientInfoResolver.setLocalAddressSupplierForTest(() -> "192.168.10.20");
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         ClientInfoResolver.ClientInfo info = ClientInfoResolver.current();
-        assertThat(info.ip()).isEqualTo("127.0.0.1");
-        assertThat(info.location()).isEqualTo("本机");
+        assertThat(info.ip()).isEqualTo("192.168.10.20");
+        assertThat(info.location()).isEqualTo("内网");
         assertThat(info.browser()).isNull();
         assertThat(info.os()).isNull();
     }

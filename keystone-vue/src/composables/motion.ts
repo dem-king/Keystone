@@ -24,6 +24,8 @@ export const DUR = Object.freeze({
   hoverIn: 0.34,
   hoverOut: 0.42,
   slide: 0.52,
+  expand: 0.44,   // 导航分组展开：从标题处铺开
+  collapse: 0.26, // 导航分组收起：收拢比铺开快，不拖沓
   pageOut: 0.18,
   pageIn: 0.62,
   overlayIn: 0.42,
@@ -128,24 +130,28 @@ export function pageLeave(el: Element, done: () => void) {
   })
 }
 
-export function pageEnter(el: Element, done: () => void) {
+/** 交接期（handoff）不隐藏页头与卡片：欢迎链与骨架层负责首帧的"满"，
+ *  再叠一层淡入会和它们打架，实测就是这一段造成白屏。 */
+export function pageEnter(el: Element, done: () => void, opts?: { cards?: boolean; handoff?: boolean }) {
   const page = el as HTMLElement
   if (skipMotion()) {
     page.classList.add('is-entrance-ready')
     return done()
   }
+  const handoff = opts?.handoff === true
   const items = page.querySelectorAll('.reveal')
-  const cards = page.querySelectorAll('.bento')
+  // 交接期卡片交落点页自己的组装编排（工作台从中心飞出），这里不碰
+  const cards = opts?.cards === false || handoff ? null : page.querySelectorAll('.bento')
   // 隐藏态写在时间轴开头的 set 里，内部只用 to 推进
   gsap.set(page, { opacity: 1, scale: 0.994 })
   gsap.set(items, { opacity: 0, y: 12 })
-  gsap.set(cards, { opacity: 0, y: 18 })
+  if (cards) gsap.set(cards, { opacity: 0, y: 18 })
   page.classList.add('is-entrance-ready')
   const tl = gsap.timeline({ onComplete: () => { gsap.set(page, { clearProps: 'transform' }); done() } })
   tl.to(page, { scale: 1, duration: DUR.pageIn, ease: EASE.glide }, 0)
   tl.to(items, { opacity: 1, y: 0, duration: DUR.pageIn, ease: EASE.reveal, stagger: { each: 0.05, from: 'start' }, clearProps: 'transform' }, 0.04)
   // 并列卡片从中间向两侧展开
-  if (cards.length) tl.to(cards, { opacity: 1, y: 0, duration: 0.72, ease: EASE.reveal, stagger: { each: 0.045, from: 'center' }, clearProps: 'opacity,transform' }, 0.1)
+  if (cards && cards.length) tl.to(cards, { opacity: 1, y: 0, duration: 0.72, ease: EASE.reveal, stagger: { each: 0.045, from: 'center' }, clearProps: 'opacity,transform' }, 0.1)
 }
 
 /** 首屏页面（无过渡钩子时）：同样走一遍进场 */
@@ -154,8 +160,10 @@ export function revealPage(page: HTMLElement | null) {
   pageEnter(page, () => {})
 }
 
-/* ── 外壳首次入场：品牌 → 导航组（from start）→ 顶栏 ── */
-export function playShellEntrance(frame: HTMLElement) {
+/* ── 外壳入场：品牌 → 导航组（from start）→ 顶栏。
+   交接期（strong）导航自左滑入、顶栏自上落下；平时进入（刷新页面）照常轻淡入。
+   框体本身不参与淡入：舞台底与阅读面一直都在，整框再淡一次就是白屏。 ── */
+export function playShellEntrance(frame: HTMLElement, strong = false) {
   if (skipMotion()) {
     frame.classList.add('is-entrance-ready')
     return
@@ -164,13 +172,37 @@ export function playShellEntrance(frame: HTMLElement) {
   const groups = frame.querySelectorAll('.nav-group')
   const top = frame.querySelectorAll('.topbar > *')
   const tl = gsap.timeline({ paused: true })
-  tl.set([...brand, ...groups, ...top], { opacity: 0, y: 8 })
+  tl.set([...brand, ...groups], strong ? { opacity: 0, x: -14 } : { opacity: 0, y: 8 })
+  tl.set(top, strong ? { opacity: 0, y: -10 } : { opacity: 0, y: 8 })
   tl.add(() => frame.classList.add('is-entrance-ready'))
-  tl.to(brand, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal }, 0)
-  tl.to(groups, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal, stagger: { each: 0.06, from: 'start' } }, 0.08)
-  tl.to(top, { opacity: 1, y: 0, duration: 0.5, ease: EASE.reveal, stagger: 0.04 }, 0.14)
+  tl.to(brand, { opacity: 1, x: 0, y: 0, duration: 0.5, ease: EASE.reveal }, strong ? 0.06 : 0)
+  tl.to(groups, { opacity: 1, x: 0, y: 0, duration: 0.52, ease: EASE.reveal, stagger: { each: 0.05, from: 'start' } }, strong ? 0.14 : 0.08)
+  tl.to(top, { opacity: 1, y: 0, duration: 0.46, ease: EASE.reveal, stagger: 0.04 }, 0.14)
   tl.add(() => gsap.set([...brand, ...groups, ...top], { clearProps: 'transform' }))
   afterTwoFrames(() => tl.play(0))
+}
+
+/* ── 登录转场（无幕交接）：登录页退场 → 工作台组装 ──
+   没有任何全屏覆盖层，转场发生在页面元素自身：
+   这里只有登录页的退场配方；工作台侧的框体浮现、导航滑入、卡片飞出
+   分别见 playShellEntrance（strong）与落点页的组装编排。
+   状态与守卫在 composables/welcome.ts。 */
+
+/** 登录页退场（停摆 Halt）：深色画布先沉走，登录卡上浮殿后，右侧背景光随尾收净。
+ *  舞台底（--stage）不动——登录页与工作台共用同一舞台，退场只发生在台上的面板。 */
+export function playLoginExit(root: HTMLElement, done: () => void): gsap.core.Timeline | null {
+  if (skipMotion()) {
+    done()
+    return null
+  }
+  const canvas = root.querySelector('.login-canvas')
+  const side = root.querySelector('.login-side')
+  const card = root.querySelector('.login-card')
+  const tl = gsap.timeline({ onComplete: done })
+  if (canvas) tl.to(canvas, { opacity: 0, y: 24, duration: 0.3, ease: EASE.exit }, 0)
+  if (card) tl.to(card, { opacity: 0, y: -16, scale: 0.986, duration: 0.32, ease: EASE.exit }, 0.06)
+  if (side) tl.to(side, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0.3)
+  return tl
 }
 
 /* ── 滑动玻璃块：导航选中、分段滑块共用（transform 归 GSAP） ── */
@@ -194,6 +226,60 @@ export function slideThumb(thumb: HTMLElement | null, target: HTMLElement | null
     return
   }
   gsap.to(thumb, { ...props, duration: DUR.slide, ease: EASE.glide, overwrite: true })
+}
+
+/* ── 导航树展开收起：一级分组与嵌套分支共用（放 Discharge / 停摆 Halt） ──
+   展开：容器高度从标题处铺开，条目按阅读序逐条落位，像内容被依次加载出来；
+   收起：条目自末端先退，高度随后收拢，比展开利落。
+   高度从当前值续播，快速连点不会跳帧。 */
+
+/** 折叠容器的直接子项：级联只作用于当前层，嵌套内容随父项整体移动 */
+function navBodyItems(body: HTMLElement) {
+  return Array.from(body.querySelectorAll<HTMLElement>(':scope > .nav-level > *')).slice(0, 16)
+}
+
+export function navBodyEnter(el: Element, done: () => void) {
+  const body = el as HTMLElement
+  const items = navBodyItems(body)
+  gsap.killTweensOf([body, ...items])
+  if (skipMotion()) {
+    gsap.set([body, ...items], { clearProps: 'transition,height,overflow,opacity,transform' })
+    return done()
+  }
+  // 条目自带 opacity 过渡（悬停让位）：动画期间改由 GSAP 全权控制，避免二次缓动
+  gsap.set(items, { transition: 'none' })
+  // 收起动画被打断时（inline 高度还在）从当前高度续播，否则从 0 铺开
+  const inline = body.style.height
+  const from = inline && inline !== 'auto' ? body.offsetHeight : 0
+  const tl = gsap.timeline({
+    onComplete: () => {
+      gsap.set(body, { clearProps: 'height,overflow' })
+      done()
+    },
+  })
+  tl.fromTo(body, { height: from, overflow: 'hidden' }, { height: 'auto', duration: DUR.expand, ease: EASE.reveal }, 0)
+  tl.fromTo(items, { opacity: 0, y: 8 }, {
+    opacity: 1, y: 0, duration: 0.34, ease: EASE.reveal, stagger: { each: 0.025, from: 'start' }, clearProps: 'opacity,transform,transition',
+  }, 0.03)
+}
+
+export function navBodyLeave(el: Element, done: () => void) {
+  const body = el as HTMLElement
+  const items = navBodyItems(body)
+  gsap.killTweensOf([body, ...items])
+  if (skipMotion()) {
+    gsap.set([body, ...items], { clearProps: 'transition,height,overflow,opacity,transform' })
+    return done()
+  }
+  gsap.set(items, { transition: 'none' })
+  const tl = gsap.timeline({
+    onComplete: () => {
+      gsap.set([body, ...items], { clearProps: 'transition,height,overflow,opacity,transform' })
+      done()
+    },
+  })
+  tl.fromTo(body, { height: body.offsetHeight, overflow: 'hidden' }, { height: 0, duration: DUR.collapse, ease: EASE.swap }, 0)
+  tl.to(items, { opacity: 0, y: -4, duration: 0.16, ease: EASE.exit, stagger: { each: 0.012, from: 'end' } }, 0)
 }
 
 /* ── 最近一次指针按下的位置：弹窗据此从触发点展开（键盘打开时为 null，回落中心） ── */
@@ -449,15 +535,40 @@ export function revealCascade(container: Element | null, selector = ':scope > *'
   })
 }
 
-/** 打字机：逐字写出 text，结束回调 done；减少动态效果时一次写完。返回取消函数 */
-export function typeOut(text: string, write: (value: string) => void, done?: () => void, speed = 42) {
+/** 打字机的节奏参数：给数字就是等间隔（毫秒/字），给对象可指定总时长与缓动 */
+export type TypePace = number | { speed?: number; ease?: string; duration?: number }
+
+/** 打字机：逐字写出 text，结束回调 done；减少动态效果时一次写完。返回取消函数。
+ *  传 ease 时改用补间驱动进度，字与字之间有缓动（起笔快、收笔慢），
+ *  比等间隔的 setInterval 顺得多——等间隔读起来是机械的。 */
+export function typeOut(text: string, write: (value: string) => void, done?: () => void, pace: TypePace = 42) {
   if (skipMotion()) {
     write(text)
     done?.()
     return () => {}
   }
-  let i = 0
   write('')
+  const ease = typeof pace === 'number' ? undefined : pace.ease
+  const speed = typeof pace === 'number' ? pace : (pace.speed ?? 42)
+
+  if (ease) {
+    const total = Math.max(1, [...text].length)
+    const chars = [...text]
+    const state = { p: 0 }
+    const tween = gsap.to(state, {
+      p: 1,
+      duration: (typeof pace === 'number' ? 1 : (pace.duration ?? (total * speed) / 1000)),
+      ease,
+      onUpdate() {
+        const n = Math.min(total, Math.ceil(state.p * total))
+        write(chars.slice(0, n).join(''))
+      },
+      onComplete() { window.setTimeout(() => done?.(), 150) },
+    })
+    return () => tween.kill()
+  }
+
+  let i = 0
   const timer = window.setInterval(() => {
     i += 1
     write(text.slice(0, i))

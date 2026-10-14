@@ -1,5 +1,242 @@
 # Changelog
 
+## 2026-10-14（登录日志 IP：本机回退真实网卡 + 代理透传访问者地址）
+
+用户反馈登录日志 IP 全是 `127.0.0.1`，要求记录各电脑自己的真实 IP（本机也一样）。
+
+**根因（两层叠加）**
+1. 本机访问（含经 vite 代理）的请求源地址就是回环，`ClientInfoResolver.resolveIp` 原样记 `127.0.0.1`；
+2. 后端只监听回环、局域网同事经 vite 代理访问时，若无转发头，后端同样只能看到回环地址。
+
+**改法**
+- `ClientInfoResolver`（keystone-framework）：解析链（XFF 首段、跳过 unknown → X-Real-IP → remoteAddr）结果为回环地址时，**回退到本机网卡真实 IPv4**。新增 `localAddress()` 探测：优先「非虚拟适配器的私网 IPv4」（黑名单覆盖 VMware / VirtualBox / Hyper-V / WSL / Docker / OpenVPN TAP-Windows / WinTun / 隧道类），逐级放宽、30s 缓存；探测不到时保留原回环值保底。测试注入点 `setLocalAddressSupplierForTest`。
+- `vite.config.ts`：`/api` 代理加 `xfwd: true` —— vite 转发时附加 `X-Forwarded-For/Host/Proto/Port`，后端凭 XFF 记录访问者真实 IP。
+
+**验证（真实环境端到端）**
+- 单测 13 项全绿（新增：回环回退 / 探测不到保留回环 / 非回环不回退 / XFF 跳过 unknown / 本机探测可用）。
+- 生产代码实测：本机探测返回 `192.168.1.39`（真实网卡），未误选 OpenVPN TAP（10.0.4.250）或 Clash TUN（198.18.0.1）。
+- 重启后端（8090）后登录并查库：`sys_login_log` 新记录 `ip=192.168.1.39`、`location=内网`（curl 直连与浏览器经 vite 两条链路均验证）。
+- xfwd A/B 实证：临时 vite（新配置）指向 echo 服务器，直连 vs 经代理对比 —— 经代理的请求出现 `x-forwarded-for: 127.0.0.1`（+ host/port/proto）四件套。
+- 新增截图脚本 `scripts/shot-login-log-ip.mjs` → `verify-login-log-ip.png`：明细表「来源」列全部显示 `192.168.1.39 / 内网`。
+
+**备注**
+- 历史记录（127.0.0.1）保持原样未刷新。
+- 5180 上的 vite 为改动前的进程，`xfwd` 于其下次重启生效。
+
+## 2026-10-14（Windows 一键启动脚本）
+
+新增本地开发一键启动脚本，避免每次手工配置环境变量；本机 `8080` 被 VPN 客户端占用，
+脚本内后端端口固定为 `8090`，前端代理目标同步指向该端口。
+
+- 新增 `keystone-system/start-backend.bat`：内置 `SERVER_PORT=8090`、`SERVER_ADDRESS`、`JWT_SECRET`、
+  全部 `DB_*` 与 `REDIS_*`，用 `start` 在独立窗口启动 jar；jar 缺失时给出明确的构建命令提示。
+- 新增 `keystone-vue/start-frontend.bat`：内置 `VITE_API_PROXY_TARGET=http://127.0.0.1:8090`
+  与 `VITE_PORT=5180`，`node_modules` 缺失时提示 `npm ci` 及两个平台可选依赖补装命令。
+- 两个脚本统一为纯 ASCII 内容（Windows `cmd` 按 GBK 读取，含 UTF-8 中文注释会导致语法错乱、执行失败）。
+- 脚本内显式清空 `SERVER__PORT`，避免被环境注入抢占端口。
+- README「本地启动」章节补充「Windows 一键启动」小节，并说明端口被占用时需同步修改的两处。
+
+## 2026-10-14（欢迎链丰富化：星野 / 拖尾 / 光束 / 轨道 / 落定确认）
+
+用户反馈：登录成功后的动画「差点意思」，且**只有星球坠落一个效果，在大屏幕上看着单薄**。
+
+**改法：欢迎链从「一颗球的独舞」扩成「一片天空的完整叙事」**，全部沿用青柠/玻璃语言，新增元素都走 canvas（`WelcomeChain.vue` 的 dust 层升级为「天空渲染器」）：
+
+- **星野背景（全程）**：60–110 颗微星（密度随视口面积）散布视口、正弦呼吸各自闪烁，约 1/5 为青柠色；炸开瞬间 `starBoost` 顶到 1、整片星野被「照亮」再缓缓暗下（衰减 1.0/s 约 1 秒见底）。浅色主题基础透明度从 0.2 提到 0.38、星点 0.8–2.4px——之前太淡在大屏幕上看不见。
+- **彗星缎带尾（坠落段）**：坠落每帧记轨迹点，相邻点连成**线宽递减的连续缎带**（圆角线帽，随年龄变细变暗）。初版试过描一条轨迹弧航线——用户反馈「球旁边杵一条线」，已撤（用户历史上否过线条类元素）。
+- **炸开强化**：爆前 90ms 蓄力压扁（anticipation squash，`scaleX 1.74 / scaleY 1.3`）→ 膨胀消失；新增 **14 道放射光束**（canvas 光线快速伸长、平方衰减）、**柔光闪**（`.welcome-flash` 径向光晕铺光量）、**第二道细冲击环**（慢半拍、更淡）；玻璃牌浮现时**扫过一道光泽**（`.welcome-glass::after` sheen）。
+- **打字段**：新增**打字光标**（恒占位只控透明度，避免宽度跳变；steps 闪烁）；**环绕轨道**——一条细椭圆轨道绕浮牌、两颗卫星对角巡航（canvas，alpha 双向缓坡，归位时软收场）；打字期重新居中由 `gsap.set` 改为 0.18s 短补间，消除逐字跳半格的阶梯感。
+- **节奏去死拍**：刻度线收窄到一半（260ms）浮牌即起飞，刻度的尾声叠进归位的开头（原 520ms 串行等待）。
+- **落定确认（归位末）**：浮牌落定后一次小幅回弹（`scale 1→1.03→1`，back.out(2.6)）+ 落点随牌宽散开一撮慢粒子——从「漂到」变成「落到」。
+
+**验证**
+- `vue-tsc --noEmit` 通过。
+- `scripts/verify-welcome-chain.mjs` 21 项断言全绿：整句逐字打字、星球右上→中心且翻滚、粒子已绘制、浮牌居中（最正一帧距中心 7px）、文字归位偏差 dx=0/dy=0、真实标题接管、无 JS 异常。
+- 分镜截图人工核对：`chain-2-orb-growing.png`（拖尾+航线）、`blast-1-blast.png`（蓄力+光束+星野）、`chain-5-typing.png`（光标+轨道）、`chain-7-falling-home.png`（归位中途星野）。新增一次性抓帧脚本 `scripts/shot-welcome-blast.mjs`（按 flash/shock 真实状态取炸开帧）。
+
+## 2026-10-14（修复：在线用户重复计数 + 登录趋势混入退出记录）
+
+用户反馈工作台「在线用户 · 近 1 小时」显示 62 人，但实际只有自己一个账号在反复登录。
+
+**根因**：`DashboardMapper.countOnlineUsers()` 统计的是 `sys_login_log` 里最近 1 小时的 **status = 1 的记录条数**，有两个失真：
+1. 同一账号每次登录写一条、多次登录重复计数（用户实测自己反复登录被算成 62 人）；
+2. 「退出登录」也写 `status = 1`（msg='退出登录'），同样被计入。
+
+**改法：在线用户改为基于「有效会话」按账号去重**
+- `TokenStore`（keystone-framework）新增 `countOnlineUsers()`：SCAN `auth:token:*`（token 的 TTL 即会话有效期），批量 MGET 取值后**按 username 去重**计数。同一账号多处/多次登录持有多个 token 只算 1 人；退出登录（revoke）或 token 过期后自动减少。
+- `DashboardService.stats()` 的 online 值改走 `tokenStore.countOnlineUsers()`，删除 `DashboardMapper` 中两个已失效的 SQL（`countOnlineUsers` / `countOnlineUsers2h`）。
+- 卡片副标题 `subText("online")`：「最近 1 小时登录」→「**当前有效会话**」；前端标签「在线用户 · 近 1 小时」→「在线用户 · 实时」，fallback 文案同步。
+
+**顺带修复（同源问题）**：登录脉搏 / 登录趋势系列 SQL（`selectLoginTrend`、`selectLoginTrendByDay`、`countLoginsPrev24h`、`countLoginsPrevDays`）原先未区分事件类型，「退出登录」记录被当成一次「登录」计入。统一加 `COALESCE(msg, '') <> '退出登录'`，只统计登录事件（含失败尝试）。
+
+**验证（真实环境端到端）**
+- 连续登录 admin 3 次（Redis token 92→95），`/api/dashboard/summary` 的 online 恒为 **1**；登出 1 个 token 后仍为 1；测试 token 全部登出后 Redis 复原。
+- 24h/7d/30d 三档 summary 均 200。
+- 新口径核对：近 24h 剔除退出记录 = 179 次（旧口径 203 次，虚高 24 条退出记录），与接口 trend 合计一致。
+- 前端截图 `keystone-vue/scripts/verify-online-card{,-zoom}.png`（脚本 `shot-online-card.mjs` 保留复用）：卡片显示「在线用户 · 实时 / 1 人 / 当前有效会话」。
+
+## 2026-10-14（欢迎链 + 首屏骨架：把白屏彻底消掉）
+
+用户反馈两件事：登录成功后要有欢迎动画（**要含用户名，显示完有一条路线回到页面右上角**），以及**首页组件加载有明显延迟，能感觉到先白屏一下再出现组件**。
+
+**白屏的根因是四处「先藏后显」叠在一起**（不是接口慢）
+1. `playShellEntrance(strong)` 把整个 `.app-frame` 设为 `opacity: 0`，靠 `is-handoff-enter:not(.is-entrance-ready)` 兜底，还要等 `afterTwoFrames`；
+2. `Dashboard.playEntrance` 先 `gsap.set(cards, { opacity: 0 })` 把 8 张卡全藏起来，最早一张也要 `delay: 0.05`；
+3. `pageEnter` 又把 `.reveal`（页头）设为 `opacity: 0`；
+4. 真实数据 `load()` 在 `onMounted` 才发请求。
+
+三段叠加 ≈ **0.88s 内容区什么都没有**，加上数据在 1s 后才到，就是「白一下再出现」。
+
+**改法：不再靠隐藏表达组装，靠占位**
+- **骨架常驻**：新增 `ui/Skeleton.vue`（灰条占位，高度对齐真实读数字号与图表高度）。工作台每张卡的数据区在 `primed`（摘要到手）前渲染灰条，高度与真实内容一致 → **第 0 帧画面就是满的**，数据到达后灰条让位、真实内容淡入，位置不动。
+- **外壳不再整框淡入**：`playShellEntrance` 去掉 `set(frame, {opacity:0, y:14})` 与对应的 `to`；舞台底 `--stage` 本来就在，整框再淡一次就是白屏。`layout.css` 的 `.is-handoff-enter` 兜底规则一并删除。
+- **卡片组装改为纯位移**：`playEntrance` 不再碰 opacity，改为同步写起始态后 `gsap.to({x, y, scale})`，位移量取中心的 0.42 倍（原来整段跨距），duration 0.72→0.5、stagger 0.05→0.035。首帧不再有「卡片凭空出现」的突变。
+- **CSS 兜底分路**：`.page:not(.is-entrance-ready):not(.is-handoff) .bento { opacity: 0 }` —— 交接期加 `.is-handoff`，跳过藏卡片；普通切页行为不变。`pageEnter` 新增 `handoff` 选项，交接期不隐藏页头（欢迎链的铭牌要压在页头位置上，页头隐身会量到 0 宽）。
+
+**欢迎链（`components/welcome/WelcomeChain.vue`）——第五版：坠落中由小变大 + 到中央炸开 + 归位吸附**
+
+三处改动：
+
+**① 坠落途中由小变大**：星球起点缩到 0.08，与下坠共用同一段补间并行涨到 1.5（实测 ×0.07 → ×0.36 → ×2.33）。像一颗正冲过来的天体，越近视角越大——比「大小不变地掉下来」符合直觉。
+
+**② 到中央炸开**：不再有落地回弹。星球抵达中心后急剧膨胀到 3.2 并消失，同时一圈`.welcome-shock`冲击波环从 0.35 扩散到 3.6、粒子放射 56 枚（带重力）+ 向上尘柱 26 枚，浮牌在同一个点上以 `back.out(1.6)` 长出来。
+
+**③ 归位末段「吸附」落定**（用户反馈「快到位那一下闪动不够丝滑」）——
+根因找到并修掉了：**早先量标题的时机太早**。`pageEnter` 会把页面从 `scale 0.994` 拉到 1（在 x≈278 处正好差 4px），工作台自己还会把页头从 `y:8` 拉回 0（正好差 8px）。在入场跑完前量到的标题位置是错的，归位落点就跟着错 4px/8px，交叉淡化时看起来就是「文字跳了一下」。现在**先让星球坠落（1.06s > 入场总时长），这段时间过去后再量标题**，量到的是定稿位置——实测偏差 dx=0、dy=0。
+
+缓动也换掉了：`power2.inOut` 在末尾留了一段刹车感，改成 **`expo.out`**——起步极快、末段极慢地被目标吸住，这才是「归位」的手感。交接时**先把玻璃底化掉、只剩文字**，再用同一时长、同一线性缓动做等量交叉（总亮度恒为 1），屏幕上没有任何一帧看得出换了主体。
+
+**顺带修掉一个真 bug**：重构后浮牌的 `opacity: 0` 被挪到了坠落之后，于是坠落那 1 秒里浮牌以 opacity 1 停在页面左上角（会在界面上看到一个小胶囊）。断言「飞行全程不出视口」报出 `top 最小 0px` 才发现。现在在挂载的第一帧就把浮牌藏起来。
+
+**测试脚本**：分镜的帧判定改为按**星球的缩放值**取（原来按坐标取，「大到接近中心」那个窗口几乎不存在，一直抓不到）。新增对齐偏差的输出，归位末段直接打印 dx/dy。
+
+**数据预热**：新增 `prefetchDashboard` / `takeWarmedDashboard` / `clearWarmedDashboard`（`welcome.ts`）。登录退场那 0.5 秒本来就在等网络，顺手把 `dashboard/summary` 打了；工作台 `onMounted` 先取预热结果同步渲染，**首帧即真内容，连淡入都省了**。预热失败不阻塞，照常走骨架路径；切区间/登出时作废。
+
+**坑**
+- **GSAP 把 `stroke-dasharray`/`stroke-dashoffset` 写成内联样式**，内联优先级高于 SVG 表现属性，`setAttribute` 会被静默忽略——拖尾一开始完全没生效。飞行段必须写 `path.style.*`。
+- 铭牌模板里不能预渲染完整名字：`typeOut` 首帧会 `write('')` 清空，预渲染会先闪一下全名再重打。模板只出 `{{ greeting }}，`。
+- **卸载时机不能猜**：最初用 `setTimeout(3200)` 卸载欢迎层，结果把飞行中的亮点掐掉了。改为链条自己 `emit('done')`，`AppShell` 收到才卸载，另有 6s 安全阀兜异常中断。
+- `.page-title` 在外壳挂载时还不存在（路由内容后挂），`document.querySelector` 量不到 → 改为轮询等待（`.page-title` 2s / `.user-chip` 0.8s），量不到就放弃播，宁可少播一次也不要把铭牌定位错。
+
+**预算**：`ARRIVE_BUDGET` 1.8s → 3.2s（要覆盖欢迎链全程）。实测（自提交）：切换 ≈ 2.05s、完全落定 ≈ 2.1s（原 3.1s）。
+
+**验证**：`scripts/verify-welcome-chain.mjs`（21 项：无空洞 / 骨架占位 / 逐字打字 / 右上角入场 / 入场带旋转 / 飞行不出视口 / 全屏居中 / 飞回标题位置 / 连续位移 / 标题接管 / 退场收尾 / 无 JS 异常）与 `scripts/shot-welcome-chain.mjs`（按**动画真实状态**取帧，不按固定毫秒猜帧；`--slow-api` 拦截概览接口验证预热未命中的骨架路径）全部通过。
+
+**断言也得测对东西**：`.page-title` 是 `<h1>` 块元素，盒宽大于文字实际宽度，用「盒子中心」比较落点会误判成偏了 39px。归位判定必须比**文字起始边**（左边缘），不是盒中心。原 `verify-welcome.mjs` 的 4 项断言已按新意图重写（原来断言的是「首帧隐藏态」，正是白屏来源），light/dark/reduce/guard 四组回归全通过。`vue-tsc` 与 `vite build` 通过。
+
+## 2026-10-14（登录转场再重做：无幕交接）
+
+「玻璃变形」版被否——「这个登录成功之后还是会显示一个幕布啊」。两版被否的是同一点：**任何全屏覆盖物都会被看成「幕」**。这一版彻底去掉覆盖层，转场发生在页面元素自身：登录页在舞台上退场（深色画布先沉、登录卡殿后），切到工作台后框体自舞台浮现、导航滑入、卡片从中心飞出落位。**全程没有任何全屏层，屏幕中心每一帧都被页面本体覆盖**（已做成硬断言）。
+
+**为什么这次能「无幕」：登录页与工作台共用同一舞台底**
+- 两者的容器背景都是 `--stage`——登录页是「舞台上左深右浅的两块面板」，工作台是「舞台上换一个框体」。退场只退台上的面板（`.login-canvas` / `.login-card` / 右侧背景光），**舞台底不动**，所以「面板离台 → 框体上台」视觉上连续，不需要任何东西去盖住切换点。
+
+**时序（先退场 → 预热完成 → 切路 → 组装）**
+- 对勾画完：并行预热 `ensureRoutes()`（菜单与权限，路由守卫据此直接放行，不留空窗）→ `beginHandoff()` 开拦截。
+- `playLoginExit`：画布下沉淡出（0.3s）→ 登录卡上浮淡出（0.06s 起 0.32s）→ 右侧背景光随尾收净；`Promise.all([退场, 预热])` 齐了才继续。
+- push 前一行 `markArrived()`（AppShell 挂载时读到 arriving）：整框自舞台浮现（`playShellEntrance(frame, true)`，框体 0.42s、导航自左滑入、顶栏自上落下）+ 工作台 `playEntrance` 卡片从中心飞出（仅 arriving 时播）。
+- arriving 按 `ARRIVE_BUDGET`（1.8s = 组装动画总长）收尾并解除点击拦截。实测（自提交）：切换 ≈ 2.0s、完全落定 ≈ 3.1s。
+
+**结构与取舍**
+- `welcome.ts` 从「等就绪再揭幕」的展示层状态机瘦身为薄交接状态机（idle → leaving → arriving），只留状态、点击拦截与预算收尾；`WelcomeMorph.vue` 删除，`--layer-welcome` 令牌删除；点击拦截改为模块内自装自卸（没有组件承载）。
+- 交接期 `pageEnter` 跳过 `.bento`（由工作台自己的飞出编排接管，避免双重动画）；Dashboard 原「会话首次飞出」改为「仅交接时飞出」，平时进入由 pageEnter 级联——两条路径互斥。
+- 减少动态效果或页面在后台：不起交接，登录页直接切换。
+
+**踩坑（重要）**
+- **vite dev 的 CSS 模块缓存**：用工具直接改 CSS 后，vite 的 watcher 可能没失效模块缓存——新页面拿到旧样式（`__vite__css=""`），表现为「新规则不生效」。本次是框体兜底规则没进浏览器，首帧整框闪现 2 帧（验证抓出）。**修复＝改完 CSS `touch` 该文件**再验证；判断页面里实际样式要在页面内查 `document.styleSheets`，别用 `?direct` 请求（它一直是新内容）。
+- **无幕转场没有遮罩兜住首帧**，任何「从隐藏态入场」的元素都要两道保险：① `onMounted` 同步段 `gsap.set(目标, { opacity: 0 })`（paused timeline 的 set 与 `gsap.from` 起始态要到下一帧才建立）；② CSS 兜底类（`.app-frame.is-handoff-enter:not(.is-entrance-ready) { opacity: 0 }`）防「JS 就位前」的闪现。
+
+**验证**
+- `scripts/verify-welcome.mjs` 重写（四场景 light / dark / reduce / guard，共 56 项断言），两轮全绿。核心断言：转场全程无遮罩组件、**屏幕中心每帧都被页面本体命中**（elementFromPoint 探针，抓任何覆盖层）、退场有中间态且路由在退净后才切、切路后框体与卡片都以隐藏态起步（不闪终态）、卡片飞出有 8 档透明度与 35 档位置中间态、转场中连点放行 0 次。
+- 产物 `scripts/verify-handoff-*.png/json`（旧版 `verify-morph-*` 产物随重做清理）。
+
+## 2026-10-14（开屏转场重做：玻璃变形·已被取代）
+
+> 本版又被否——「这个登录成功之后还是会显示一个幕布啊」：玻璃面放大铺满本身仍是一层「幕」。已被同日「无幕交接」取代（见上一条），保留作决策记录。
+
+首版「上卷揭幕」被否——「不要这种开幕的，重新设计一个比较现代的、活泼的效果」。重做为**玻璃变形**：登录卡被点亮后，同一块玻璃面自卡片位置长出来、放大铺满全屏，品牌与问候在其中落定，就绪后化开让位给工作台。经确认：方向＝玻璃变形 / 节奏＝舒展约 1.8s / 读数＝轻快弹跳计数。
+
+**从「幕」到「转场」**
+- 旧版是一块独立的全屏幕（从登录页盖起、就绪后上卷）；新版没有幕——玻璃面**从登录卡自身长出**：起始盒取 `.login-card` 的 `getBoundingClientRect()`（left/top/width/height 与圆角正是卡片盒），首帧与卡片严格重合、看不出接缝，随后放大到全屏、圆角收平。视觉上不是「换了一块屏」，而是「这张卡撑成了工作台」。
+- `WelcomeSplash.vue` 删除，新增 `WelcomeMorph.vue`；配方换成 `playMorphOpen` / `playMorphDissolve` + `countUp` / `revealCounts`（均在 `motion.ts`）。`--layer-welcome: 300` 沿用；点击穿透守卫（捕获阶段拦 `pointerdown` / `click`）随新组件保留。
+
+**铺满放行（covered 信号）**
+- 路由必须等玻璃面**铺满**才能切——切早了底下会露出还没被盖住的旧页面。新增 `whenWelcomeCovered()`：`Login.vue` 在 `beginWelcome()` 后 await 放行；`playMorphOpen` 在时间轴 0.62s 处回调 `markWelcomeCovered()`（expo.out 在 0.62 处已覆盖 99.7%）。兜底 `COVER_TIMEOUT = 1800ms`，`finishWelcome` / `abortWelcome` 也放行，异常路径不会把用户扣在等路由上。
+
+**弹跳计数取代刻度轨**
+- `countUp` 用 `back.out(2)` 越过目标再回落（实测 12→11、38→34），落定真值「11 个页面 · 34 项权限」；`.wm-count b` 用等宽字体、`min-width: 2ch` + 右对齐防抖位。
+- **让位等计数跳完**：`startCounters()` 返回 Promise，`Promise.all([contentReady, countersDone])` 之后才化开——否则招牌动作刚起跳就被化开盖掉（实测数字可见 ≈ 795ms 才算用足）。
+
+**光斑归属**
+- 两枚环境光斑（青柠 / 蓝）在 `prefers-reduced-motion: no-preference` 下由 CSS `@keyframes` 缓慢漂移（9s / 11s）；**transform 归 CSS、GSAP 只碰 opacity**，避免双方同改 transform 打架。
+
+**踩坑（均已修正）**
+- GSAP 里 `radius` 不是合法 CSS 属性名（静默忽略），必须写 `borderRadius`；写错表现为起手圆角 0px 而非 24px。
+- `watch(welcomeActive, ...)` 默认 flush `pre`：回调执行时面板 DOM 尚未渲染，`panel.value` 为 null 直接 return（玻璃面完全不出现）。须 `await nextTick()` 再起播。
+- 断言起始几何时卡片盒必须**同帧**量取——「提交时刻」与「起播时刻」差 16px（登录成功那拍卡片自己动了，y 164→148）。
+- 淡入断言取**过程峰值**，末帧在化开时已归零。
+
+**验证**
+- `vue-tsc --noEmit` + `vite build` 通过；`npm run test:unit` 32/32。
+- `scripts/verify-welcome.mjs` 重写（直连 CDP，四场景 light/dark/reduce/skip，13 项断言），两轮全绿。实测：首帧 420×513@(903,148) 与同帧卡片吻合、起手圆角 24px→0、33 档宽度中间态、切路瞬间覆盖 1424×809（100%）、计数 0/0→…→12/38→11/34；节奏：铺满 711ms → 读数出现 1089ms → 计数落定 1596ms → 化开 1884ms → 移除 2240ms（符合「舒展 1.8s」）。
+- 产物 `scripts/verify-morph-*.png/json`（旧版 `verify-welcome-*` 产物随重做清理）。
+
+## 2026-10-14（登录成功后的开屏欢迎动画·上卷版）
+
+> 本版已被同日重做的**玻璃变形**取代（见上一条），保留作决策记录：文中 `WelcomeSplash`、`playWelcomeRise` / `playWelcomeExit`、刻度轨与快进等实现均已不存在；`verify-welcome.mjs` 亦已重写为验证新版。
+
+登录成功到工作台之间有一段绕不开的空窗：路由要拉菜单与权限、落点页面要拉数据，这段时间里界面正从登录页切到外壳，用户看到的是一个「半成品闪一下再补齐」。本次在中间插一层全屏的幕——它在登录页上盖起，把空窗吸收进「正在准备」的读数里，外壳与工作台都就绪之后再上卷揭幕。
+
+**方案（确认后实施）**：揭幕＝上卷 + 光泽扫过；节奏＝标准约 2.2s；幕面＝仪器式（刻度轨、等宽读数、真实数据）。
+
+**跨路由的全局层**
+- 幕挂在 `App.vue`（常驻、仅激活期渲染），不属登录页也不属外壳：从登录页升起、到外壳揭幕，全程同一层 DOM，中间的路由切换不再拆掉它。层级新增 `--layer-welcome: 300`（高于弹窗遮罩 `--layer-overlay: 200`，低于提示 `--layer-toast: 400`），深浅两态各有幕面渐变与点阵肌理。
+
+**由就绪信号驱动，不是定时器**
+- `composables/welcome.ts` 是纯状态机（idle → rising → holding → exiting），等待全部在组件侧轮询，没有悬空定时器。两个真实信号：`shellReady`（AppShell 挂载，此时路由守卫已先行完成菜单与权限加载）、`expectContent` / `contentReady`（落点页面主体数据，当前由工作台报告）。
+- 待命段是弹性的：内容最多多等 0.9s，外壳兜底 4s，超时照揭——异常路径不会把用户扣在幕上。
+- 幕面读数全部来自真实状态：刻度轨 18%（幕起）→ 60%（落字完成）→ 85%（外壳就绪）→ 100%（揭幕前），阶段文案「正在准备菜单与权限… → 正在加载工作台数据… → 已加载 11 个页面 · 34 项权限」取自实际菜单与权限数，不是装饰。
+
+**入场对齐：与揭幕重叠，而不是排在后面**
+- 新增 `onWelcomeExit(cb)`：外壳入场（`playShellEntrance`）与工作台卡片落位（`playEntrance`）都挂到揭幕那一刻播放，与上卷重叠，总时长不叠加——幕拉开时卡片正好落定。`abortWelcome()` 在导航失败或外壳卸载时立刻放行全部回调，避免外壳被留在「等揭幕」的隐藏态。
+
+**快进与降级**
+- 点幕或按任意键快进：落字加速 5 倍并跳过剩余等待窗口，但就绪仍是揭幕前提（不会让用户快进到一个空外壳）；开屏期间 `AppShell` 的全局快捷键让位，避免空格之类误触。
+- 减少动态效果或页面在后台（`skipMotion()`，后者 rAF 被节流、补间会停在半路）时不开幕，直接进终态。
+
+**点击穿透（实测发现的缺陷，已修）**
+- 揭幕时幕被 `clip-path` 从下往上裁短，**被裁掉的区域不再拦截点击**：用户在揭幕中连点，点击会穿透到刚露出的工作台并误触导航——自动化实测点击落点被带到「角色管理」页。修复：`WelcomeSplash` 在 exiting 期间于 document 捕获阶段 `preventDefault` + `stopPropagation`（`pointerdown` 与 `click` 各一枚守卫）。
+- 顺带修掉一处进度回退：外壳先就绪时 `progress` 已被推到 85，幕起的基础位需用 `Math.max` 写入，否则刻度轨会倒退到 18。
+
+**验证**
+- `vue-tsc --noEmit` 与 `vite build` 通过（231 modules）。
+- 新增 `keystone-vue/scripts/verify-welcome.mjs`（直连 Chromium CDP，四场景：浅色 / 深色 / 减少动态 / 快进回归），两轮连续全绿。实测：幕在屏 ≈ 2.05–2.10s（快进 ≈ 1.2s，均落在确认的「标准 2.2s」内）；问候语逐字落定 0→1→…→6；揭幕有真实中间态（`inset(0% 0% 0.06%)` → `…99.99%`）；卡片落位与揭幕重叠 59 帧；快进场景在「已被卷走」的落点上连点，穿透 0 次且落点仍在工作台。
+- 快进回归是非平凡断言：先等幕裁掉 55% 以上、确认落点元素栈里已没有幕（实测 `["empty","bento",…]`），再点击——否则「没穿透」可能只是因为幕还盖在那里。
+
+## 2026-10-14（侧栏展开折叠动效）
+
+侧边栏的分组与分支一直是 `v-show` 瞬切：点开「啪」地出现、收起同样生硬；侧栏收成图标条时，列宽、文字与分组标题也是整块瞬变。本次为这两处补上统一的展开/折叠动效，全部经 `composables/motion.ts` 输出（符合动效规范，侧栏此前未接入）。
+
+**展开与折叠（一级分组、任意层级分支共用同一套）**
+
+- `motion.ts` 新增 `navBodyEnter` / `navBodyLeave` 与 `DUR.expand`（0.44s）/ `DUR.collapse`（0.26s）令牌。展开：容器高度从标题处铺开（expo.out），条目按阅读序逐条落位（0.34s，级联 25ms，像内容被依次加载出来）；收起：条目自末端先退、高度随后收拢，比展开利落。
+- **从当前高度续播**：快速连点打断（展开中点击收起、收起中再点开）时从容器当前高度继续，不跳帧。`Sidebar` 与 `NavTreeNode` 的 `v-show` 改为 `<Transition :css="false">` 接入。
+- 条目自带 `opacity` 过渡（悬停让位高亮在用），动画期间临时改 `transition: none` 由 GSAP 全权控制，结束 `clearProps` 还原——否则 CSS 过渡与 GSAP 双重缓动，条目透明度级联会明显滞后（实测收起 120ms 时最后一项仍在 0.94 以上）。
+- 减少动态效果、页面在后台时不播动画，直接给终态（复用 `skipMotion()`）；结束时清理全部 inline 样式，无残留。
+
+**图标条折叠（侧栏收成 76px）**
+
+- `.app-frame` 的 `grid-template-columns` 增加 0.38s 过渡：收放时列宽平滑滑动，工作区随动。
+- 品牌文字与导航标签由 `display: none` 瞬变改为「先淡出、再塌缩宽度」（`max-width` 0↔100% + `opacity`）；展开时反向延迟出现。`.nav-item` / `.rail-brand` 的 `gap`、`padding` 同步过渡，图标滑向并精确停在中心（原先靠 `display: none` 去掉间隙，直接改 `max-width` 会残留 11px 空隙使图标偏左）。
+- 分组标题行（`max-height`）、分组间距（`margin/padding`）、分支缩进线同步过渡，消除折叠瞬间的整块跳动；移动端覆盖规则同步改写。
+
+**验证**
+
+- `vue-tsc --noEmit` 与 `vite build` 通过。
+- 无后端环境下用 Chromium CDP 对临时预览页实测（30 个演示菜单触发紧凑模式）。开启/收起/三级分支/图标条折叠四个场景均在 t+120ms、t+300ms 采到中间态：高度为 px 中间值、条目透明度呈级联梯度（展开 0.83/0.53，收起 0.68/0.43）；800ms 后 inline 样式全部清理。快速连点「展开→打断→收起→再展开」高度从 110px→85px→0→103px 平滑续播；全程无 JS 异常。
+- 真实环境（后端 8090 + 前端 5180，admin 登录）复核「系统管理」收放：收起 t+120ms 时 h=189（278→0 途中）、末项透明度 0.657 呈反向级联；再展开 t+120ms 时 h=243.9（0→278 途中），结束无残留、无 JS 异常。折叠态与展开中截图存 `keystone-vue/scripts/verify-nav-motion-*.png`。
+- 既有 `scripts/verify-group-collapse.py`（Playwright，点击后 settle 700ms）经时序核对不受影响：收起 0.26s / 展开 0.44s 均在等待窗口内完成；待后端环境可用时可复跑复核。
+
 ## 2026-10-13（修复：登录日志的来源与客户端列为空）
 
 登录日志的「来源」「客户端」两列一直显示「—」。根因在写入端：`sys_login_log` 表本身有 `ip / location / browser / os` 四列，列表查询与前端渲染也一直正常，唯独 `AuthMapper.insertLoginLog` 只写入 `username / status / msg / login_time`，登录、退出、失败尝试三类记录从未采集过请求上下文，四列始终为 NULL。
