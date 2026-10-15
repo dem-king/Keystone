@@ -182,15 +182,14 @@ export function playShellEntrance(frame: HTMLElement, strong = false) {
   afterTwoFrames(() => tl.play(0))
 }
 
-/* ── 登录转场（无幕交接）：登录页退场 → 工作台组装 ──
-   没有任何全屏覆盖层，转场发生在页面元素自身：
-   这里只有登录页的退场配方；工作台侧的框体浮现、导航滑入、卡片飞出
-   分别见 playShellEntrance（strong）与落点页的组装编排。
-   状态与守卫在 composables/welcome.ts。 */
+/* ── 登录转场（无幕交接）：登录页消散 → 曲率穿越 → 工作台组装 ──
+   「幕」的替代：WarpTransit 特效层（透明 additive 画布 + 暗色天幕）承担穿越段，
+   页面本体始终真实在场。这里只有登录页 DOM 的消散配方；穿越与星体脱出见
+   components/welcome/WarpTransit.vue，状态与守卫在 composables/welcome.ts。 */
 
-/** 登录页退场（停摆 Halt）：深色画布先沉走，登录卡上浮殿后，右侧背景光随尾收净。
- *  舞台底（--stage）不动——登录页与工作台共用同一舞台，退场只发生在台上的面板。 */
-export function playLoginExit(root: HTMLElement, done: () => void): gsap.core.Timeline | null {
+/** 登录页消散（停摆 Halt）：DOM 快速淡出上浮，轮廓交给 WarpTransit 的粒子接续——
+ *  淡出要干脆（0.38s），慢了会跟粒子「双重曝光」。根底色不动：天幕负责暗场。 */
+export function playLoginDissolve(root: HTMLElement, done: () => void): gsap.core.Timeline | null {
   if (skipMotion()) {
     done()
     return null
@@ -199,10 +198,17 @@ export function playLoginExit(root: HTMLElement, done: () => void): gsap.core.Ti
   const side = root.querySelector('.login-side')
   const card = root.querySelector('.login-card')
   const tl = gsap.timeline({ onComplete: done })
-  if (canvas) tl.to(canvas, { opacity: 0, y: 24, duration: 0.3, ease: EASE.exit }, 0)
-  if (card) tl.to(card, { opacity: 0, y: -16, scale: 0.986, duration: 0.32, ease: EASE.exit }, 0.06)
-  if (side) tl.to(side, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0.3)
+  if (canvas) tl.to(canvas, { opacity: 0, y: 18, duration: 0.38, ease: EASE.exit }, 0)
+  if (card) tl.to(card, { opacity: 0, y: -12, scale: 0.99, duration: 0.34, ease: EASE.exit }, 0.04)
+  if (side) tl.to(side, { opacity: 0, duration: 0.3, ease: 'power1.in' }, 0.1)
   return tl
+}
+
+/** 交接被撤回（导航失败 / 会话过期）时还原登录页：消散补间已把面板推到透明，
+ *  清掉内联值退回 CSS 定义态，否则留在「看得见背景、摸不着面板」的空场 */
+export function restoreLoginStage(root: HTMLElement | null) {
+  if (!root) return
+  gsap.set(root.querySelectorAll('.login-canvas, .login-side, .login-card'), { clearProps: 'all' })
 }
 
 /* ── 滑动玻璃块：导航选中、分段滑块共用（transform 归 GSAP） ── */

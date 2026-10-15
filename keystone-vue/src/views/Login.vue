@@ -9,9 +9,9 @@ import Checkbox from '@/components/ui/Checkbox.vue'
 import { ApiError, authApi, portalApi } from '@/api'
 import NeuralNet from '@/components/NeuralNet.vue'
 import { login } from '@/composables/auth'
-import { beginHandoff, finishHandoff, markArrived, prefetchDashboard } from '@/composables/welcome'
-import { EASE, afterTwoFrames, gsap, motionSkipped, playLoginExit, prefersReducedMotion, trackGlow } from '@/composables/motion'
-import { ensureRoutes } from '@/router'
+import { beginHandoff, finishHandoff, markArrived, prefetchDashboard, setTransitSwapped, startTransit } from '@/composables/welcome'
+import { EASE, afterTwoFrames, gsap, motionSkipped, playLoginDissolve, prefersReducedMotion, restoreLoginStage, trackGlow } from '@/composables/motion'
+import { ensureRoutes, preloadHome } from '@/router'
 import { required, validate } from '@/utils/validate'
 import { APP } from '@/data'
 
@@ -22,6 +22,7 @@ const form = reactive({ username: '', password: '', captcha: '' })
 const errors = ref<Partial<Record<keyof typeof form, string>>>({})
 const remember = ref(true)
 const submitting = ref(false)
+const showPassword = ref(false)
 const formError = ref('')
 const captchaCode = ref('')
 const captchaUuid = ref('')
@@ -29,6 +30,7 @@ const captchaLoading = ref(false)
 const root = ref<HTMLElement | null>(null)
 const card = ref<HTMLElement | null>(null)
 const succeeded = ref(false)
+const wait = (ms: number) => new Promise<void>(resolve => window.setTimeout(resolve, ms))
 
 /* ── 左侧仪表：实时时钟（秒针刻度逐格推进）与服务健康 ── */
 const now = ref(new Date())
@@ -71,6 +73,12 @@ function resetTilt() {
   tiltY?.(0)
 }
 
+/* 登录失败：登录卡轻微水平抖动（错峰回位），与指针倾斜互不干扰（x / rotation 分轴） */
+function shakeCard() {
+  if (!card.value || motionSkipped()) return
+  gsap.to(card.value, { keyframes: [{ x: -7 }, { x: 6 }, { x: -4 }, { x: 2 }, { x: 0 }], duration: 0.42, ease: 'power1.out' })
+}
+
 /* ── 登录成功三拍：按钮收拢成圆（放）→ 对勾圆环描出（结）→ 进入外壳 ── */
 const netBurst = ref(0)
 async function playSuccess() {
@@ -86,7 +94,7 @@ async function playSuccess() {
     tl.fromTo(orb, { width: orb.parentElement!.clientWidth }, { width: 46, duration: 0.42, ease: EASE.swap })
     if (ring) tl.fromTo(ring, { strokeDashoffset: 126 }, { strokeDashoffset: 0, duration: 0.5, ease: EASE.reveal }, '-=0.08')
     if (check) tl.fromTo(check, { strokeDashoffset: 24 }, { strokeDashoffset: 0, duration: 0.32, ease: EASE.settle }, '-=0.22')
-    tl.to(orb, { scale: 1.06, duration: 0.16, ease: 'power1.out' }).to(orb, { scale: 1, duration: 0.3, ease: EASE.settle })
+    // 对勾描完即走：回弹尾巴砍掉（省 ~0.5s），转场特效接棒
   })
 }
 
@@ -124,34 +132,41 @@ async function submit() {
   submitting.value = true
   try {
     await login({ username: form.username.trim(), password: form.password, captcha: form.captcha.trim(), captchaUuid: captchaUuid.value }, remember.value)
-    // 无幕交接：先并行预热菜单与权限（路由守卫据此直接放行，不留空窗），
-    // 再让登录页在舞台上退场（深色画布先沉、登录卡殿后）；退场播完 + 预热完成才切路由。
+    // 消散 → 曲率穿越转场：先并行预热菜单与权限（路由守卫据此直接放行），
+    // 特效层挂载待命（不挡对勾动画）；对勾收尾 → 消散段 → 光丝加速 → 切路由（全程暗场）→ 星体脱出 → 欢迎链接管。
     // 工作台首屏数据也在这段等待里一并打了，落点页挂载即可同步渲染。
     const warm = ensureRoutes().catch(() => false)
+    // 落点页 chunk 预载（不 await）：对勾动画期间足够加载完，切路由不等网络
+    warm.then(ok => { if (ok) preloadHome() })
     prefetchDashboard('24h', r => portalApi.dashboard.summary({ range: r }))
     beginHandoff()
     await playSuccess()
-    await Promise.all([
-      new Promise<void>(resolve => {
-        const el = root.value
-        if (!el) return resolve()
-        playLoginExit(el, resolve)
-      }),
-      warm,
-    ])
+    startTransit() // 特效层进入消散段（异步自走）
+    const dissolve = new Promise<void>(resolve => {
+      const el = root.value
+      if (!el) return resolve()
+      playLoginDissolve(el, resolve)
+    })
+    await Promise.all([dissolve, warm])
+    await wait(250) // 光丝加速段建立起速度再切换，切换全程暗场
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
     // 切换前进入 arriving：工作台侧的框体浮现、导航滑入、卡片飞出从这一刻起算
     markArrived()
     const failure = await router.replace(redirect)
-    // 进入外壳的导航被取消（如菜单加载期间会话过期）时仍停在登录页：恢复登录按钮、撤回交接
+    // 进入外壳的导航被取消（如菜单加载期间会话过期）时仍停在登录页：恢复登录按钮、撤回交接。
+    // 消散补间已播完，面板在透明态，必须还原；finishHandoff 内含 transitAbort，特效层随之快速淡出
     if (failure || router.currentRoute.value.name === 'login') {
       succeeded.value = false
       finishHandoff()
+      restoreLoginStage(root.value)
+    } else {
+      setTransitSwapped() // 特效层进入减速 + 星体脱出段
     }
   } catch (error) {
     succeeded.value = false
     finishHandoff()
     formError.value = error instanceof ApiError ? error.message : '登录失败，请稍后重试'
+    shakeCard()
     await refreshCaptcha()
   } finally {
     submitting.value = false
@@ -225,6 +240,7 @@ onBeforeUnmount(() => {
       <div class="canvas-grid" aria-hidden="true" />
       <div class="canvas-glow" aria-hidden="true" />
       <NeuralNet :burst-key="netBurst" />
+      <div class="canvas-scrim" aria-hidden="true" />
       <div class="login-brand">
         <span class="brand-mark"><span class="brand-dot" /></span>
         <div>
@@ -249,7 +265,7 @@ onBeforeUnmount(() => {
             <line
               v-for="t in TICKS"
               :key="t.i"
-              :class="['dial-tick', { 'is-major': t.major, 'is-on': t.i <= now.getSeconds() }]"
+              :class="['dial-tick', { 'is-major': t.major, 'is-on': t.i <= now.getSeconds(), 'is-now': t.i === now.getSeconds() }]"
               :x1="t.x1" :y1="t.y1" :x2="t.x2" :y2="t.y2"
             />
           </svg>
@@ -280,9 +296,9 @@ onBeforeUnmount(() => {
       <div class="login-foot">{{ APP.copyright }}</div>
     </section>
 
-    <!-- 右：登录卡 -->
+    <!-- 右：深色玻璃登录卡，浮在画布之上 -->
     <section class="login-side" @pointermove="onTilt" @pointerleave="resetTilt">
-      <div ref="card" class="login-card m-float m-glow" role="region" aria-labelledby="login-heading" @pointermove="trackGlow">
+      <div ref="card" class="login-card m-glow" role="region" aria-labelledby="login-heading" @pointermove="trackGlow">
         <span class="glow-layer" aria-hidden="true" />
         <div class="login-card-inner">
           <span class="eyebrow">欢迎回来</span>
@@ -294,12 +310,31 @@ onBeforeUnmount(() => {
               <TextInput v-model="form.username" icon="user" placeholder="请输入账号" autocomplete="username" :invalid="!!errors.username" />
             </Field>
             <Field label="密码" :error="errors.password">
-              <TextInput v-model="form.password" type="password" icon="lock" placeholder="请输入密码" autocomplete="current-password" :invalid="!!errors.password" />
+              <TextInput
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                icon="lock"
+                placeholder="请输入密码"
+                autocomplete="current-password"
+                :invalid="!!errors.password"
+              >
+                <template #trailing>
+                  <button
+                    type="button"
+                    class="input-affix"
+                    :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                    :aria-pressed="showPassword"
+                    @click="showPassword = !showPassword"
+                  >
+                    <Icon :name="showPassword ? 'eyeOff' : 'eye'" :size="15" />
+                  </button>
+                </template>
+              </TextInput>
             </Field>
             <Field label="验证码" :error="errors.captcha">
-              <div class="captcha-row">
+              <div class="captcha-group">
                 <TextInput v-model="form.captcha" icon="shield" placeholder="请输入右侧字符" :maxlength="6" autocomplete="off" :invalid="!!errors.captcha" />
-                <button type="button" class="captcha-box m-groove" :disabled="captchaLoading" aria-label="看不清，换一张" title="看不清，换一张" @click="refreshCaptcha">
+                <button type="button" class="captcha-box" :disabled="captchaLoading" aria-label="看不清，换一张" title="看不清，换一张" @click="refreshCaptcha">
                   <span v-if="captchaCode" class="captcha-code" aria-hidden="true">
                     <span v-for="(ch, i) in captchaCode.split('')" :key="i" :style="{ rotate: `${(i % 2 ? 1 : -1) * (6 + i * 3)}deg` }">{{ ch }}</span>
                   </span>

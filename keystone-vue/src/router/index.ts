@@ -51,6 +51,20 @@ export function resetRoutes() {
 }
 setSessionRouteReset(resetRoutes)
 
+/** 预载落点页的懒加载组件 chunk：登录退场那 0.5s 里调用，把切路由时的
+ *  动态 import 提前，消灭「退场播完 → 外壳首帧」之间的网络黑场 */
+export async function preloadHome() {
+  try {
+    if (!routesReady) return
+    const resolved = router.resolve({ path: homePath() })
+    await Promise.all(resolved.matched.flatMap(record =>
+      Object.values(record.components ?? {})
+        .filter((c): c is () => Promise<unknown> => typeof c === 'function')
+        .map(c => Promise.resolve(c()).catch(() => undefined)),
+    ))
+  } catch { /* 预载失败不阻塞：切路由时照常按需加载 */ }
+}
+
 /** 加载菜单与权限并注册动态路由。守卫在首次导航时调用；
  *  登录页也会提前预热它（await 网络），让切路由时守卫直接放行、不留空窗 */
 export async function ensureRoutes() {

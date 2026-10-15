@@ -72,7 +72,7 @@
 | 导航树与折叠 | `components/layout/NavTreeNode.vue`、`composables/navCollapse.ts`、`utils/navTree.ts` | 递归渲染任意层级菜单、分组折叠状态（`sessionStorage` 的 `keystone.navCollapsed`）、菜单树转换纯函数（深度上限 `MAX_MENU_DEPTH=6`） |
 | 请求与会话 | `api/http.ts`、`api/session.ts`、`composables/auth.ts`、`router/index.ts` | 响应解包、存储、401 处理、动态路由与会话清理 |
 | 外观与动效 | `composables/appearance.ts`、`motion.ts`、`focus.ts` | 主题、密度、GSAP、浮层层级与焦点 |
-| 登录转场与欢迎链 | `composables/welcome.ts`、`components/welcome/WelcomeChain.vue` | 交接状态机（idle / leaving / arriving）、点击拦截、`ARRIVE_BUDGET` 收尾、工作台数据预热；欢迎链是「星球自右上角坠落（途中由小变大）→ 到中央炸开 → 浮牌同点浮现 → 整句问候语逐字打出 → 吸附式回落页头标题位置」，粒子走 canvas（`.welcome-dust`） |
+| 登录转场与欢迎链 | `composables/welcome.ts`、`components/welcome/WelcomeChain.vue`、`components/welcome/WarpTransit.vue` | 登录成功 → 特效层（消散粒子接续 DOM 轮廓 → 天幕暗场拉起 → 曲率光丝 → 切路由全程暗场 → 脱出星抵达）`transitReleased` 放行 → 欢迎链「星球坠落 → 炸开 → 浮牌逐字打字 → 吸附回落页头」；交接状态机（idle / leaving / arriving）、`transitActive/Released/Swapped/Abort` 信号、点击拦截、`ARRIVE_BUDGET` 收尾、工作台数据预热；粒子走 canvas（`lighter` additive）。导航失败走 abort：还原面板 + `succeeded=false` + 特效层快速淡出 |
 | 首屏骨架 | `components/ui/Skeleton.vue`、`views/Dashboard.vue` | 数据未到时用等高灰条占位，卡片从第 0 帧就在位；`page.is-handoff` 期间跳过「藏卡片」兜底 |
 | 样式 | `styles/tokens.css`、`base.css`、`materials.css`、`components.css`、`instruments.css`、`layout.css`、`pages.css` | 顺序加载的七层样式 |
 

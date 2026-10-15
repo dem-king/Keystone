@@ -21,19 +21,41 @@ export type HandoffPhase = 'idle' | 'leaving' | 'arriving'
 export const handoffActive = ref(false)
 export const handoffPhase = ref<HandoffPhase>('idle')
 
+/* ── 转场特效层（WarpTransit，挂在 App.vue 跨路由切换存活） ──
+   Login 驱动节奏，特效层自走并在星体到达脱出点时 release 给欢迎链。 */
+export const transitActive = ref(false)    // 特效层在场（含待命）
+export const transitReleased = ref(false)  // 星体到达：WelcomeChain 起跑信号
+export const transitSwapped = ref(false)   // 路由已切换：特效层可进入减速+脱出段
+export const transitAbort = ref(false)     // 交接被撤回：特效层快速淡出
+
+let signalTransitStart: () => void = () => undefined
+/** 每次交接一份新的启动信号；WarpTransit onMounted 时读取（挂载由 transitActive 触发，晚于重建） */
+export let transitBegin: Promise<void> = Promise.resolve()
+
 /** arriving 的总预算：外壳滑入 + 欢迎链前段（铭牌 → 打字 → 抽线 → 亮点起飞）
  *  的全部时长，到点收尾。欢迎链尾段（亮点飞行后半 + 抵达 + 退场）不阻塞点击，
  *  欢迎层本身 pointer-events: none，用户此时点导航不影响它自己淡出。 */
-const ARRIVE_BUDGET = 3600
+const ARRIVE_BUDGET = 4200
 let arriveTimer = 0
 
 /** 登录成功、开始退场前调用。减少动态效果或页面在后台时不激活，登录页直接切换 */
 export function beginHandoff() {
   if (handoffActive.value || motionSkipped()) return
+  transitBegin = new Promise<void>(resolve => { signalTransitStart = resolve })
+  transitActive.value = true
+  transitReleased.value = false
+  transitSwapped.value = false
+  transitAbort.value = false
   handoffActive.value = true
   handoffPhase.value = 'leaving'
   installGuards()
 }
+
+/** 对勾收尾时调用：特效层从待命进入消散段 */
+export function startTransit() { signalTransitStart() }
+
+/** 路由切换成功后调用：特效层进入减速 + 星体脱出段 */
+export function setTransitSwapped() { transitSwapped.value = true }
 
 /** 路由切换之前调用（push 前一行）：进入组装阶段，按预算收尾 */
 export function markArrived() {
@@ -45,6 +67,7 @@ export function markArrived() {
 
 /** 收尾（正常到点或异常中断同用）：解除守卫。导航失败、外壳卸载时也要调用 */
 export function finishHandoff() {
+  transitAbort.value = true
   if (arriveTimer) {
     window.clearTimeout(arriveTimer)
     arriveTimer = 0

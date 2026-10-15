@@ -16,8 +16,8 @@
   "hidden": 0
  },
  {
-  "t": 144,
-  "cardOp": 0.06,
+  "t": 145,
+  "cardOp": 0.1,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -32,8 +32,8 @@
   "hidden": 0
  },
  {
-  "t": 161,
-  "cardOp": 0.15,
+  "t": 160,
+  "cardOp": 0.18,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -49,7 +49,7 @@
  },
  {
   "t": 178,
-  "cardOp": 0.25,
+  "cardOp": 0.27,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -64,8 +64,8 @@
   "hidden": 0
  },
  {
-  "t": 194,
-  "cardOp": 0.32,
+  "t": 196,
+  "cardOp": 0.35,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -80,8 +80,8 @@
   "hidden": 0
  },
  {
-  "t": 211,
-  "cardOp": 0.39,
+  "t": 216,
+  "cardOp": 0.44,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -96,8 +96,8 @@
   "hidden": 0
  },
  {
-  "t": 228,
-  "cardOp": 0.46,
+  "t": 234,
+  "cardOp": 0.51,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -112,8 +112,8 @@
   "hidden": 0
  },
  {
-  "t": 245,
-  "cardOp": 0.52,
+  "t": 251,
+  "cardOp": 0.56,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -128,8 +128,8 @@
   "hidden": 0
  },
  {
-  "t": 262,
-  "cardOp": 0.58,
+  "t": 265,
+  "cardOp": 0.61,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -144,8 +144,8 @@
   "hidden": 0
  },
  {
-  "t": 279,
-  "cardOp": 0.63,
+  "t": 281,
+  "cardOp": 0.65,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -161,7 +161,7 @@
  },
  {
   "t": 295,
-  "cardOp": 0.67,
+  "cardOp": 0.69,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -176,8 +176,8 @@
   "hidden": 0
  },
  {
-  "t": 311,
-  "cardOp": 0.71,
+  "t": 312,
+  "cardOp": 0.73,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -192,8 +192,8 @@
   "hidden": 0
  },
  {
-  "t": 331,
-  "cardOp": 0.75,
+  "t": 328,
+  "cardOp": 0.76,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -208,8 +208,8 @@
   "hidden": 0
  },
  {
-  "t": 348,
-  "cardOp": 0.79,
+  "t": 347,
+  "cardOp": 0.8,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -224,8 +224,8 @@
   "hidden": 0
  },
  {
-  "t": 367,
-  "cardOp": 0.82,
+  "t": 369,
+  "cardOp": 0.83,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -240,7 +240,7 @@
   "hidden": 0
  },
  {
-  "t": 387,
+  "t": 384,
   "cardOp": 0.85,
   "canvasOp": 1,
   "sideOp": 1,
@@ -256,7 +256,7 @@
   "hidden": 0
  },
  {
-  "t": 406,
+  "t": 400,
   "cardOp": 0.87,
   "canvasOp": 1,
   "sideOp": 1,
@@ -272,7 +272,7 @@
   "hidden": 0
  },
  {
-  "t": 424,
+  "t": 420,
   "cardOp": 0.89,
   "canvasOp": 1,
   "sideOp": 1,
@@ -288,7 +288,7 @@
   "hidden": 0
  },
  {
-  "t": 436,
+  "t": 432,
   "cardOp": 0.91,
   "canvasOp": 1,
   "sideOp": 1,
@@ -320,7 +320,7 @@
   "hidden": 0
  },
  {
-  "t": 465,
+  "t": 466,
   "cardOp": 0.93,
   "canvasOp": 1,
   "sideOp": 1,
@@ -336,7 +336,7 @@
   "hidden": 0
  },
  {
-  "t": 477,
+  "t": 481,
   "cardOp": 0.94,
   "canvasOp": 1,
   "sideOp": 1,
@@ -352,7 +352,7 @@
   "hidden": 0
  },
  {
-  "t": 496,
+  "t": 495,
   "cardOp": 0.95,
   "canvasOp": 1,
   "sideOp": 1,
@@ -368,7 +368,7 @@
   "hidden": 0
  },
  {
-  "t": 514,
+  "t": 512,
   "cardOp": 0.96,
   "canvasOp": 1,
   "sideOp": 1,
@@ -384,7 +384,7 @@
   "hidden": 0
  },
  {
-  "t": 529,
+  "t": 527,
   "cardOp": 0.97,
   "canvasOp": 1,
   "sideOp": 1,
@@ -400,7 +400,7 @@
   "hidden": 0
  },
  {
-  "t": 554,
+  "t": 562,
   "cardOp": 0.98,
   "canvasOp": 1,
   "sideOp": 1,
@@ -416,7 +416,7 @@
   "hidden": 0
  },
  {
-  "t": 595,
+  "t": 600,
   "cardOp": 0.99,
   "canvasOp": 1,
   "sideOp": 1,
@@ -432,7 +432,7 @@
   "hidden": 0
  },
  {
-  "t": 661,
+  "t": 657,
   "cardOp": 1,
   "canvasOp": 1,
   "sideOp": 1,
@@ -448,7 +448,7 @@
   "hidden": 0
  },
  {
-  "t": 1535,
+  "t": 1525,
   "cardOp": 1,
   "canvasOp": 0.99,
   "sideOp": 1,
@@ -464,7 +464,7 @@
   "hidden": 0
  },
  {
-  "t": 1554,
+  "t": 1553,
   "cardOp": 1,
   "canvasOp": 0.98,
   "sideOp": 1,
@@ -480,25 +480,9 @@
   "hidden": 0
  },
  {
-  "t": 1577,
-  "cardOp": 1,
-  "canvasOp": 0.96,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1599,
+  "t": 1600,
   "cardOp": 0.99,
-  "canvasOp": 0.93,
+  "canvasOp": 0.92,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -512,9 +496,9 @@
   "hidden": 0
  },
  {
-  "t": 1622,
-  "cardOp": 0.98,
-  "canvasOp": 0.89,
+  "t": 1631,
+  "cardOp": 0.97,
+  "canvasOp": 0.84,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -528,25 +512,9 @@
   "hidden": 0
  },
  {
-  "t": 1642,
-  "cardOp": 0.96,
-  "canvasOp": 0.83,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1668,
+  "t": 1659,
   "cardOp": 0.93,
-  "canvasOp": 0.74,
+  "canvasOp": 0.75,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -560,9 +528,9 @@
   "hidden": 0
  },
  {
-  "t": 1690,
-  "cardOp": 0.89,
-  "canvasOp": 0.65,
+  "t": 1684,
+  "cardOp": 0.88,
+  "canvasOp": 0.63,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -576,9 +544,9 @@
   "hidden": 0
  },
  {
-  "t": 1711,
-  "cardOp": 0.84,
-  "canvasOp": 0.53,
+  "t": 1713,
+  "cardOp": 0.81,
+  "canvasOp": 0.46,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -592,9 +560,9 @@
   "hidden": 0
  },
  {
-  "t": 1732,
-  "cardOp": 0.77,
-  "canvasOp": 0.39,
+  "t": 1738,
+  "cardOp": 0.72,
+  "canvasOp": 0.28,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -608,9 +576,9 @@
   "hidden": 0
  },
  {
-  "t": 1754,
-  "cardOp": 0.69,
-  "canvasOp": 0.21,
+  "t": 1763,
+  "cardOp": 0.61,
+  "canvasOp": 0.06,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -624,24 +592,8 @@
   "hidden": 0
  },
  {
-  "t": 1777,
-  "cardOp": 0.58,
-  "canvasOp": 0,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1801,
-  "cardOp": 0.44,
+  "t": 1787,
+  "cardOp": 0.48,
   "canvasOp": 0,
   "sideOp": 0.99,
   "path": "/login",
@@ -657,9 +609,9 @@
  },
  {
   "t": 1811,
-  "cardOp": 0.37,
+  "cardOp": 0.32,
   "canvasOp": 0,
-  "sideOp": 0.97,
+  "sideOp": 0.96,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -673,9 +625,9 @@
  },
  {
   "t": 1827,
-  "cardOp": 0.26,
+  "cardOp": 0.18,
   "canvasOp": 0,
-  "sideOp": 0.94,
+  "sideOp": 0.91,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -688,10 +640,10 @@
   "hidden": 0
  },
  {
-  "t": 1844,
-  "cardOp": 0.12,
+  "t": 1843,
+  "cardOp": 0.06,
   "canvasOp": 0,
-  "sideOp": 0.89,
+  "sideOp": 0.86,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -707,7 +659,7 @@
   "t": 1861,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.83,
+  "sideOp": 0.79,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -720,10 +672,10 @@
   "hidden": 0
  },
  {
-  "t": 1878,
+  "t": 1877,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.75,
+  "sideOp": 0.71,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -739,7 +691,7 @@
   "t": 1894,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.66,
+  "sideOp": 0.61,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -752,10 +704,10 @@
   "hidden": 0
  },
  {
-  "t": 1911,
+  "t": 1910,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.55,
+  "sideOp": 0.5,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -771,7 +723,7 @@
   "t": 1927,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.44,
+  "sideOp": 0.38,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -784,10 +736,10 @@
   "hidden": 0
  },
  {
-  "t": 1944,
+  "t": 1943,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.3,
+  "sideOp": 0.23,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -800,10 +752,10 @@
   "hidden": 0
  },
  {
-  "t": 1960,
+  "t": 1961,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.16,
+  "sideOp": 0.08,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -832,7 +784,7 @@
   "hidden": 0
  },
  {
-  "t": 2053,
+  "t": 2100,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -843,7 +795,7 @@
    379,
    271
   ],
-  "reveal": 0.71,
+  "reveal": 0.46,
   "frameOp": 1,
   "ready": 0,
   "morph": 0,
@@ -851,7 +803,7 @@
   "hidden": 0
  },
  {
-  "t": 2059,
+  "t": 2106,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -862,7 +814,7 @@
    379,
    271
   ],
-  "reveal": 0.74,
+  "reveal": 0.49,
   "frameOp": 1,
   "ready": 0,
   "morph": 0,
@@ -870,7 +822,26 @@
   "hidden": 0
  },
  {
-  "t": 2074,
+  "t": 2128,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   379,
+   271
+  ],
+  "reveal": 0.64,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2146,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -889,7 +860,26 @@
   "hidden": 0
  },
  {
-  "t": 2096,
+  "t": 2164,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   379,
+   271
+  ],
+  "reveal": 0.82,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2185,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -900,7 +890,7 @@
    378,
    272
   ],
-  "reveal": 0.86,
+  "reveal": 0.87,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -908,7 +898,7 @@
   "hidden": 0
  },
  {
-  "t": 2116,
+  "t": 2206,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -919,7 +909,7 @@
    378,
    272
   ],
-  "reveal": 0.9,
+  "reveal": 0.91,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -927,7 +917,7 @@
   "hidden": 0
  },
  {
-  "t": 2134,
+  "t": 2225,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -938,7 +928,7 @@
    378,
    272
   ],
-  "reveal": 0.93,
+  "reveal": 0.94,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -946,7 +936,7 @@
   "hidden": 0
  },
  {
-  "t": 2151,
+  "t": 2244,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -957,7 +947,7 @@
    378,
    272
   ],
-  "reveal": 0.95,
+  "reveal": 0.96,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -965,7 +955,7 @@
   "hidden": 0
  },
  {
-  "t": 2172,
+  "t": 2264,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -984,7 +974,7 @@
   "hidden": 0
  },
  {
-  "t": 2189,
+  "t": 2285,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1003,7 +993,7 @@
   "hidden": 0
  },
  {
-  "t": 2223,
+  "t": 2305,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1022,7 +1012,7 @@
   "hidden": 0
  },
  {
-  "t": 2268,
+  "t": 2352,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1041,7 +1031,7 @@
   "hidden": 0
  },
  {
-  "t": 2287,
+  "t": 2377,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1049,8 +1039,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   353,
-   257
+   349,
+   255
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1060,7 +1050,7 @@
   "hidden": 0
  },
  {
-  "t": 2329,
+  "t": 2396,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1068,8 +1058,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   325,
-   240
+   335,
+   246
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1079,7 +1069,7 @@
   "hidden": 0
  },
  {
-  "t": 2352,
+  "t": 2420,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1087,8 +1077,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   312,
-   232
+   320,
+   237
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1098,7 +1088,7 @@
   "hidden": 0
  },
  {
-  "t": 2379,
+  "t": 2442,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1106,8 +1096,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   300,
-   225
+   309,
+   230
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1117,7 +1107,26 @@
   "hidden": 0
  },
  {
-  "t": 2405,
+  "t": 2466,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   298,
+   224
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2489,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1136,7 +1145,7 @@
   "hidden": 0
  },
  {
-  "t": 2428,
+  "t": 2514,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1145,7 +1154,7 @@
   "bentoN": 9,
   "rect": [
    283,
-   215
+   214
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1155,7 +1164,7 @@
   "hidden": 0
  },
  {
-  "t": 2449,
+  "t": 2535,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1163,7 +1172,7 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   279,
+   278,
    212
   ],
   "reveal": 1,
@@ -1174,7 +1183,7 @@
   "hidden": 0
  },
  {
-  "t": 2472,
+  "t": 2561,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1193,83 +1202,7 @@
   "hidden": 0
  },
  {
-  "t": 2495,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   272,
-   208
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2516,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   270,
-   207
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2537,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   269,
-   206
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2582,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   270,
-   207
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2619,
+  "t": 2585,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1288,7 +1221,83 @@
   "hidden": 0
  },
  {
-  "t": 2638,
+  "t": 2604,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   270,
+   207
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2624,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   269,
+   206
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2665,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   270,
+   207
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2704,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   271,
+   208
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2722,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1307,7 +1316,7 @@
   "hidden": 0
  },
  {
-  "t": 2657,
+  "t": 2743,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1315,7 +1324,7 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   273,
+   274,
    209
   ],
   "reveal": 1,
@@ -1326,7 +1335,7 @@
   "hidden": 0
  },
  {
-  "t": 2675,
+  "t": 2761,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1345,7 +1354,7 @@
   "hidden": 0
  },
  {
-  "t": 2690,
+  "t": 2781,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1354,7 +1363,7 @@
   "bentoN": 9,
   "rect": [
    276,
-   210
+   211
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -1364,7 +1373,7 @@
   "hidden": 0
  },
  {
-  "t": 2707,
+  "t": 2798,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1383,7 +1392,26 @@
   "hidden": 0
  },
  {
-  "t": 2745,
+  "t": 2817,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   278,
+   211
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2836,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,

@@ -16,8 +16,8 @@
   "hidden": 0
  },
  {
-  "t": 90,
-  "cardOp": 0.12,
+  "t": 136,
+  "cardOp": 0.08,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -32,8 +32,8 @@
   "hidden": 0
  },
  {
-  "t": 107,
-  "cardOp": 0.33,
+  "t": 153,
+  "cardOp": 0.17,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -48,8 +48,8 @@
   "hidden": 0
  },
  {
-  "t": 124,
-  "cardOp": 0.49,
+  "t": 172,
+  "cardOp": 0.27,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -64,8 +64,8 @@
   "hidden": 0
  },
  {
-  "t": 141,
-  "cardOp": 0.62,
+  "t": 196,
+  "cardOp": 0.37,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -80,8 +80,8 @@
   "hidden": 0
  },
  {
-  "t": 157,
-  "cardOp": 0.73,
+  "t": 221,
+  "cardOp": 0.48,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -96,7 +96,87 @@
   "hidden": 0
  },
  {
-  "t": 174,
+  "t": 243,
+  "cardOp": 0.56,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 262,
+  "cardOp": 0.61,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 280,
+  "cardOp": 0.66,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 304,
+  "cardOp": 0.72,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 321,
+  "cardOp": 0.76,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 343,
   "cardOp": 0.8,
   "canvasOp": 1,
   "sideOp": 1,
@@ -112,8 +192,8 @@
   "hidden": 0
  },
  {
-  "t": 190,
-  "cardOp": 0.86,
+  "t": 357,
+  "cardOp": 0.82,
   "canvasOp": 1,
   "sideOp": 1,
   "path": "/login",
@@ -128,7 +208,55 @@
   "hidden": 0
  },
  {
-  "t": 207,
+  "t": 371,
+  "cardOp": 0.84,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 387,
+  "cardOp": 0.87,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 403,
+  "cardOp": 0.88,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 424,
   "cardOp": 0.91,
   "canvasOp": 1,
   "sideOp": 1,
@@ -144,7 +272,39 @@
   "hidden": 0
  },
  {
-  "t": 223,
+  "t": 439,
+  "cardOp": 0.92,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 453,
+  "cardOp": 0.93,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 470,
   "cardOp": 0.94,
   "canvasOp": 1,
   "sideOp": 1,
@@ -160,7 +320,23 @@
   "hidden": 0
  },
  {
-  "t": 240,
+  "t": 488,
+  "cardOp": 0.95,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 503,
   "cardOp": 0.96,
   "canvasOp": 1,
   "sideOp": 1,
@@ -176,7 +352,23 @@
   "hidden": 0
  },
  {
-  "t": 257,
+  "t": 526,
+  "cardOp": 0.97,
+  "canvasOp": 1,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 557,
   "cardOp": 0.98,
   "canvasOp": 1,
   "sideOp": 1,
@@ -192,7 +384,7 @@
   "hidden": 0
  },
  {
-  "t": 273,
+  "t": 596,
   "cardOp": 0.99,
   "canvasOp": 1,
   "sideOp": 1,
@@ -208,7 +400,7 @@
   "hidden": 0
  },
  {
-  "t": 306,
+  "t": 653,
   "cardOp": 1,
   "canvasOp": 1,
   "sideOp": 1,
@@ -224,7 +416,7 @@
   "hidden": 0
  },
  {
-  "t": 1524,
+  "t": 1653,
   "cardOp": 1,
   "canvasOp": 0.99,
   "sideOp": 1,
@@ -240,9 +432,9 @@
   "hidden": 0
  },
  {
-  "t": 1540,
+  "t": 1678,
   "cardOp": 1,
-  "canvasOp": 0.98,
+  "canvasOp": 0.97,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -256,9 +448,9 @@
   "hidden": 0
  },
  {
-  "t": 1558,
+  "t": 1698,
   "cardOp": 1,
-  "canvasOp": 0.96,
+  "canvasOp": 0.95,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -272,9 +464,9 @@
   "hidden": 0
  },
  {
-  "t": 1575,
+  "t": 1721,
   "cardOp": 0.99,
-  "canvasOp": 0.94,
+  "canvasOp": 0.91,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -288,25 +480,9 @@
   "hidden": 0
  },
  {
-  "t": 1594,
-  "cardOp": 0.99,
-  "canvasOp": 0.9,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1612,
+  "t": 1744,
   "cardOp": 0.97,
-  "canvasOp": 0.86,
+  "canvasOp": 0.85,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -320,9 +496,9 @@
   "hidden": 0
  },
  {
-  "t": 1629,
-  "cardOp": 0.96,
-  "canvasOp": 0.81,
+  "t": 1767,
+  "cardOp": 0.95,
+  "canvasOp": 0.78,
   "sideOp": 1,
   "path": "/login",
   "bento": -1,
@@ -336,122 +512,10 @@
   "hidden": 0
  },
  {
-  "t": 1648,
-  "cardOp": 0.93,
-  "canvasOp": 0.74,
+  "t": 1790,
+  "cardOp": 0.91,
+  "canvasOp": 0.69,
   "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1665,
-  "cardOp": 0.9,
-  "canvasOp": 0.66,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1684,
-  "cardOp": 0.86,
-  "canvasOp": 0.57,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1701,
-  "cardOp": 0.81,
-  "canvasOp": 0.46,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1720,
-  "cardOp": 0.74,
-  "canvasOp": 0.32,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1750,
-  "cardOp": 0.61,
-  "canvasOp": 0.06,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1768,
-  "cardOp": 0.51,
-  "canvasOp": 0,
-  "sideOp": 1,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1785,
-  "cardOp": 0.41,
-  "canvasOp": 0,
-  "sideOp": 0.98,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -465,9 +529,9 @@
  },
  {
   "t": 1814,
-  "cardOp": 0.19,
-  "canvasOp": 0,
-  "sideOp": 0.92,
+  "cardOp": 0.86,
+  "canvasOp": 0.56,
+  "sideOp": 1,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -480,10 +544,10 @@
   "hidden": 0
  },
  {
-  "t": 1826,
-  "cardOp": 0.09,
-  "canvasOp": 0,
-  "sideOp": 0.88,
+  "t": 1836,
+  "cardOp": 0.79,
+  "canvasOp": 0.42,
+  "sideOp": 1,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -496,10 +560,90 @@
   "hidden": 0
  },
  {
-  "t": 1843,
+  "t": 1861,
+  "cardOp": 0.69,
+  "canvasOp": 0.22,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 1884,
+  "cardOp": 0.59,
+  "canvasOp": 0.03,
+  "sideOp": 1,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 1907,
+  "cardOp": 0.45,
+  "canvasOp": 0,
+  "sideOp": 0.99,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 1929,
+  "cardOp": 0.31,
+  "canvasOp": 0,
+  "sideOp": 0.95,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 1964,
+  "cardOp": 0.02,
+  "canvasOp": 0,
+  "sideOp": 0.85,
+  "path": "/login",
+  "bento": -1,
+  "bentoN": 0,
+  "rect": null,
+  "reveal": -1,
+  "frameOp": -1,
+  "ready": -1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 1997,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.81,
+  "sideOp": 0.69,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -512,10 +656,10 @@
   "hidden": 0
  },
  {
-  "t": 1859,
+  "t": 2007,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.73,
+  "sideOp": 0.63,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -528,23 +672,7 @@
   "hidden": 0
  },
  {
-  "t": 1872,
-  "cardOp": 0,
-  "canvasOp": 0,
-  "sideOp": 0.66,
-  "path": "/login",
-  "bento": -1,
-  "bentoN": 0,
-  "rect": null,
-  "reveal": -1,
-  "frameOp": -1,
-  "ready": -1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 1889,
+  "t": 2019,
   "cardOp": 0,
   "canvasOp": 0,
   "sideOp": 0.56,
@@ -560,10 +688,10 @@
   "hidden": 0
  },
  {
-  "t": 1906,
+  "t": 2037,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.44,
+  "sideOp": 0.43,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -576,7 +704,7 @@
   "hidden": 0
  },
  {
-  "t": 1923,
+  "t": 2053,
   "cardOp": 0,
   "canvasOp": 0,
   "sideOp": 0.3,
@@ -592,10 +720,10 @@
   "hidden": 0
  },
  {
-  "t": 1939,
+  "t": 2069,
   "cardOp": 0,
   "canvasOp": 0,
-  "sideOp": 0.16,
+  "sideOp": 0.15,
   "path": "/login",
   "bento": -1,
   "bentoN": 0,
@@ -608,7 +736,7 @@
   "hidden": 0
  },
  {
-  "t": 1957,
+  "t": 2085,
   "cardOp": 0,
   "canvasOp": 0,
   "sideOp": 0,
@@ -624,7 +752,26 @@
   "hidden": 0
  },
  {
-  "t": 2070,
+  "t": 2275,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   379,
+   271
+  ],
+  "reveal": 0.82,
+  "frameOp": 1,
+  "ready": 0,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2283,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -635,7 +782,7 @@
    378,
    271
   ],
-  "reveal": 0.84,
+  "reveal": 0.85,
   "frameOp": 1,
   "ready": 0,
   "morph": 0,
@@ -643,7 +790,7 @@
   "hidden": 0
  },
  {
-  "t": 2076,
+  "t": 2297,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -656,13 +803,13 @@
   ],
   "reveal": 0.86,
   "frameOp": 1,
-  "ready": 0,
+  "ready": 1,
   "morph": 0,
   "inPage": 1,
   "hidden": 0
  },
  {
-  "t": 2094,
+  "t": 2308,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -673,7 +820,7 @@
    378,
    272
   ],
-  "reveal": 0.89,
+  "reveal": 0.9,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -681,7 +828,7 @@
   "hidden": 0
  },
  {
-  "t": 2110,
+  "t": 2324,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -692,7 +839,7 @@
    378,
    272
   ],
-  "reveal": 0.92,
+  "reveal": 0.93,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -700,7 +847,7 @@
   "hidden": 0
  },
  {
-  "t": 2125,
+  "t": 2341,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -711,7 +858,7 @@
    378,
    272
   ],
-  "reveal": 0.94,
+  "reveal": 0.95,
   "frameOp": 1,
   "ready": 1,
   "morph": 0,
@@ -719,7 +866,7 @@
   "hidden": 0
  },
  {
-  "t": 2141,
+  "t": 2359,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -738,7 +885,7 @@
   "hidden": 0
  },
  {
-  "t": 2158,
+  "t": 2376,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -757,7 +904,7 @@
   "hidden": 0
  },
  {
-  "t": 2175,
+  "t": 2393,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -776,7 +923,7 @@
   "hidden": 0
  },
  {
-  "t": 2191,
+  "t": 2413,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -795,7 +942,7 @@
   "hidden": 0
  },
  {
-  "t": 2240,
+  "t": 2446,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -803,8 +950,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   375,
-   270
+   378,
+   272
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -814,7 +961,7 @@
   "hidden": 0
  },
  {
-  "t": 2257,
+  "t": 2468,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -822,8 +969,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   360,
-   261
+   363,
+   263
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -833,7 +980,7 @@
   "hidden": 0
  },
  {
-  "t": 2274,
+  "t": 2494,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -841,8 +988,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   347,
-   253
+   343,
+   251
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -852,7 +999,7 @@
   "hidden": 0
  },
  {
-  "t": 2291,
+  "t": 2513,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -860,8 +1007,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   335,
-   246
+   329,
+   243
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -871,7 +1018,7 @@
   "hidden": 0
  },
  {
-  "t": 2310,
+  "t": 2539,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -879,26 +1026,7 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   324,
-   239
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2324,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   315,
+   314,
    234
   ],
   "reveal": 1,
@@ -909,7 +1037,7 @@
   "hidden": 0
  },
  {
-  "t": 2341,
+  "t": 2562,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -917,8 +1045,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   307,
-   229
+   303,
+   227
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -928,7 +1056,7 @@
   "hidden": 0
  },
  {
-  "t": 2358,
+  "t": 2584,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -936,8 +1064,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   300,
-   225
+   295,
+   222
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -947,7 +1075,7 @@
   "hidden": 0
  },
  {
-  "t": 2373,
+  "t": 2605,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -955,8 +1083,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   293,
-   221
+   287,
+   217
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -966,7 +1094,7 @@
   "hidden": 0
  },
  {
-  "t": 2391,
+  "t": 2624,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -974,8 +1102,8 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   288,
-   218
+   282,
+   214
   ],
   "reveal": 1,
   "frameOp": 1,
@@ -985,7 +1113,7 @@
   "hidden": 0
  },
  {
-  "t": 2407,
+  "t": 2644,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -993,26 +1121,7 @@
   "bento": 1,
   "bentoN": 9,
   "rect": [
-   283,
-   215
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2425,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   279,
+   278,
    212
   ],
   "reveal": 1,
@@ -1023,26 +1132,7 @@
   "hidden": 0
  },
  {
-  "t": 2441,
-  "cardOp": -1,
-  "canvasOp": -1,
-  "sideOp": -1,
-  "path": "/dashboard",
-  "bento": 1,
-  "bentoN": 9,
-  "rect": [
-   276,
-   211
-  ],
-  "reveal": 1,
-  "frameOp": 1,
-  "ready": 1,
-  "morph": 0,
-  "inPage": 1,
-  "hidden": 0
- },
- {
-  "t": 2457,
+  "t": 2665,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1061,7 +1151,7 @@
   "hidden": 0
  },
  {
-  "t": 2475,
+  "t": 2684,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1080,7 +1170,7 @@
   "hidden": 0
  },
  {
-  "t": 2491,
+  "t": 2705,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1099,7 +1189,7 @@
   "hidden": 0
  },
  {
-  "t": 2524,
+  "t": 2729,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1118,7 +1208,7 @@
   "hidden": 0
  },
  {
-  "t": 2565,
+  "t": 2789,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1137,7 +1227,7 @@
   "hidden": 0
  },
  {
-  "t": 2600,
+  "t": 2811,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1156,7 +1246,7 @@
   "hidden": 0
  },
  {
-  "t": 2617,
+  "t": 2828,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1175,7 +1265,7 @@
   "hidden": 0
  },
  {
-  "t": 2635,
+  "t": 2853,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1194,7 +1284,7 @@
   "hidden": 0
  },
  {
-  "t": 2651,
+  "t": 2870,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1213,7 +1303,7 @@
   "hidden": 0
  },
  {
-  "t": 2666,
+  "t": 2888,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1232,7 +1322,7 @@
   "hidden": 0
  },
  {
-  "t": 2687,
+  "t": 2908,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,
@@ -1251,7 +1341,26 @@
   "hidden": 0
  },
  {
-  "t": 2718,
+  "t": 2926,
+  "cardOp": -1,
+  "canvasOp": -1,
+  "sideOp": -1,
+  "path": "/dashboard",
+  "bento": 1,
+  "bentoN": 9,
+  "rect": [
+   278,
+   211
+  ],
+  "reveal": 1,
+  "frameOp": 1,
+  "ready": 1,
+  "morph": 0,
+  "inPage": 1,
+  "hidden": 0
+ },
+ {
+  "t": 2945,
   "cardOp": -1,
   "canvasOp": -1,
   "sideOp": -1,

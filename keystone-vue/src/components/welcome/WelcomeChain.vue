@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { currentUser } from '@/composables/auth'
 import { createFrameLoop, gsap, motionSkipped, typeOut } from '@/composables/motion'
+import { transitReleased } from '@/composables/welcome'
 import { greetingOf } from '@/utils/greeting'
 
 /* ============================================================
@@ -344,6 +345,18 @@ onMounted(async () => {
   const flashEl = flash.value
   if (motionSkipped() || !plateEl || !textEl || !glassEl || !orbEl || !shockEl || !shock2El || !flashEl) return finish()
 
+  // 浮牌与星球必须第一帧就藏：它们的基准位置要到坠落之后才量，之前停在 (0,0)。
+  // 「等脱出星到达」让挂载到开播之间多了至多 ~1s 的等待窗口，不先藏就会露出
+  // 左上角的白块（浮牌）/ 绿球（星球）。CSS 已有默认 opacity:0，这里是双保险。
+  gsap.set([plateEl, orbEl, shockEl, shock2El, flashEl], { opacity: 0 })
+
+  // 曲率穿越特效的脱出星到达落点后才开始（直切/兜底 3s 后立即开始）；
+  // 此时外壳入场早已落定，后续量标题的时序假设不变
+  if (!transitReleased.value) {
+    const t0 = performance.now()
+    while (!transitReleased.value && performance.now() - t0 < 3000) await wait(50)
+  }
+
   const title = await waitForElement<HTMLElement>('.page-title', 2000)
   if (!title) return finish()
 
@@ -351,10 +364,7 @@ onMounted(async () => {
   orbitAnchor = plateEl
 
   // 浮牌期间真实标题让位：归位时两者文字位置完全重合，接上时看不出接缝。
-  // 浮牌也要在第一帧就藏起来——它的基准位置要到坠落之后才量，
-  // 在那之前它停在左上角，不藏的话会被看到。
   gsap.set(title, { opacity: 0 })
-  gsap.set(plateEl, { opacity: 0 })
 
   // ── 先让星球坠落，这一步不依赖标题位置 ──
   const vw = window.innerWidth

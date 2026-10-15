@@ -79,5 +79,6 @@ defineExpose({ focus: () => el.value?.focus() })
     >
       <Icon name="x" :size="14" />
     </button>
+    <slot name="trailing" />
   </span>
 </template>

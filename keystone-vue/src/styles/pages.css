@@ -2,15 +2,13 @@
    页面级样式：只放单个页面独有的排布，通用控件不在这里写。
    ============================================================ */
 
-/* ── 登录 · 全幅画布 + 浮动面板 ─────────────────────────────── */
+/* ── 登录 · 全屏深色画布，登录卡以深色玻璃浮于其上 ────────────── */
 .login {
   position: relative;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(400px, 1fr);
-  gap: 0;
-  padding: 14px;
-  background: var(--stage);
+  grid-template-columns: minmax(0, 1.3fr) minmax(400px, 1fr);
+  background: #0f1214;
   overflow: clip;
 }
 .login:not(.is-entrance-ready) .login-brand,
@@ -20,19 +18,18 @@
 .login:not(.is-entrance-ready) .login-dial,
 .login:not(.is-entrance-ready) .login-card { opacity: 0; }
 
-/* 左侧画布：深色面在浅 / 深两态都是深色，品牌标记的底座 */
+/* 画布：铺满整个登录页作背景层（品牌门面恒深色，不进主题切换） */
 .login-canvas {
+  grid-area: 1 / 1 / 2 / 3;
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 28px);
-  padding: 34px 40px 28px;
-  border-radius: 30px;
+  min-height: 100dvh;
+  padding: 34px 44px 26px;
   overflow: hidden;
   color: #f2f5f4;
   background: #0f1214;
-  box-shadow: 0 24px 70px rgba(17, 23, 27, .28), inset 0 1px 0 rgba(255, 255, 255, .08);
 }
 .canvas-grid {
   position: absolute;
@@ -51,13 +48,23 @@
     radial-gradient(40% 45% at 72% 42%, rgba(130, 221, 45, .2), transparent 70%),
     radial-gradient(35% 40% at 18% 92%, rgba(76, 141, 255, .18), transparent 70%);
 }
+/* 压暗粒子网络保证文案可读：左重右轻，中间留给表盘 */
+.canvas-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(15, 18, 20, .92) 0%, rgba(15, 18, 20, .62) 34%, rgba(15, 18, 20, .3) 52%, rgba(15, 18, 20, .66) 100%);
+}
+.login-canvas .neural-net { opacity: .72; }
 .login-brand { display: flex; align-items: center; gap: 12px; }
 .login-brand .brand-name { font-size: 16px; color: #fff; }
-.login-brand .brand-sub { color: rgba(255, 255, 255, .5); }
+.login-brand .brand-sub { color: rgba(255, 255, 255, .55); }
 .login-brand .brand-mark { background: rgba(255, 255, 255, .08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 0 0 1px rgba(255, 255, 255, .08); }
 .login-canvas .eyebrow { color: rgba(255, 255, 255, .5); }
 
-.canvas-main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 32px; padding: 40px 0 24px; }
+/* 左侧内容限宽在左栏，不侵入登录卡一列 */
+.canvas-main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 32px; max-width: min(62%, 1120px); padding: 40px 0 24px; }
 .canvas-copy { display: flex; flex-direction: column; gap: 18px; max-width: 600px; min-width: 0; }
 .login-title {
   display: flex;
@@ -71,15 +78,23 @@
 .login-title .hero-line { white-space: nowrap; }
 .login-lead { display: block; max-width: 460px; font-size: 14.5px; line-height: 1.75; color: rgba(255, 255, 255, .62); text-wrap: pretty; }
 
-.login-dial { position: relative; width: clamp(200px, 21vw, 300px); aspect-ratio: 1; flex: none; }
+.login-dial { position: relative; width: clamp(190px, 17vw, 280px); aspect-ratio: 1; flex: none; }
 .login-dial svg { width: 100%; height: 100%; overflow: visible; }
 .dial-tick { stroke: rgba(255, 255, 255, .16); stroke-width: .7; stroke-linecap: round; transition: stroke .35s ease; }
 .dial-tick.is-major { stroke-width: 1.1; stroke: rgba(255, 255, 255, .3); }
 .dial-tick.is-on { stroke: var(--lime); }
+/* 当前秒刻度：呼吸光晕，逐秒换格重新起搏 */
+.dial-tick.is-now {
+  stroke: #b1f17a;
+  filter: drop-shadow(0 0 3.5px rgba(130, 221, 45, .85));
+  animation: dial-breathe 1.6s ease-in-out infinite;
+}
+@keyframes dial-breathe { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
 .dial-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
 .dial-time { font-family: var(--font-mono); font-size: clamp(24px, 2.6vw, 34px); font-weight: 650; letter-spacing: -.02em; color: #fff; }
-.dial-date { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: var(--track-eyebrow); color: rgba(255, 255, 255, .5); }
+.dial-date { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: var(--track-eyebrow); color: rgba(255, 255, 255, .55); }
 
+/* 底部通栏玻璃条：服务健康 + 四项能力一排 */
 .canvas-plates { display: flex; align-items: stretch; gap: 14px; flex-wrap: wrap; }
 .login-plate {
   border-radius: var(--r-lg);
@@ -89,7 +104,7 @@
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
 }
-.login-plate.is-health { display: grid; grid-template-columns: auto auto; align-items: center; gap: 6px 10px; padding: 14px 18px; font-size: 13px; }
+.login-plate.is-health { display: grid; grid-template-columns: auto auto; align-items: center; gap: 6px 10px; padding: 16px 20px; font-size: 13px; flex: none; }
 .login-plate.is-health .eyebrow { grid-column: 1 / -1; }
 .health-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--red); box-shadow: 0 0 0 4px rgba(255, 90, 80, .2); }
 .health-dot.is-ok { background: var(--lime); box-shadow: 0 0 0 4px rgba(130, 221, 45, .2), 0 0 12px rgba(130, 221, 45, .6); }
@@ -97,65 +112,103 @@
 .cap-list {
   list-style: none;
   margin: 0;
-  padding: 14px 16px;
+  padding: 16px 20px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 220px));
-  gap: 12px 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 24px;
   flex: 1;
   min-width: 0;
 }
 .cap-item { display: flex; gap: 10px; align-items: flex-start; }
-.cap-ico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: var(--r-xs); color: var(--lime); background: rgba(130, 221, 45, .12); flex: none; }
-.cap-title { display: block; font-size: 12.5px; font-weight: 650; color: #fff; }
-.cap-desc { display: block; margin-top: 1px; font-size: 11.5px; color: rgba(255, 255, 255, .5); line-height: 1.45; }
+.cap-ico { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--r-xs); color: var(--lime); background: rgba(130, 221, 45, .12); flex: none; }
+.cap-title { display: block; font-size: 13.5px; font-weight: 650; color: #fff; }
+.cap-desc { display: block; margin-top: 2px; font-size: 12px; color: rgba(255, 255, 255, .52); line-height: 1.5; }
 .login-foot { margin-top: 18px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em; color: rgba(255, 255, 255, .36); }
 
-/* 右侧：珍珠舞台上的登录卡，随指针轻倾 */
+/* 右侧：深色玻璃登录卡浮在画布上，随指针轻倾 */
 .login-side {
   position: relative;
+  z-index: 1;
+  grid-area: 1 / 2 / 2 / 3;
   display: grid;
   place-items: center;
-  padding: 32px clamp(20px, 4vw, 64px);
+  padding: 32px clamp(20px, 3vw, 56px);
   perspective: 1200px;
 }
-.login-side::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(50% 40% at 50% 30%, rgba(255, 255, 255, .8), transparent 70%),
-    radial-gradient(45% 40% at 80% 85%, var(--ambient-a), transparent 70%);
-}
-:root[data-theme="dark"] .login-side::before { background: radial-gradient(45% 40% at 80% 85%, var(--ambient-b), transparent 70%); }
 .login-card {
   position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   border-radius: var(--r-xl);
+  border: 1px solid rgba(255, 255, 255, .13);
+  background: rgba(255, 255, 255, .06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 24px 60px rgba(0, 0, 0, .45);
+  backdrop-filter: blur(24px) saturate(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
   transform-style: preserve-3d;
   will-change: transform;
 }
+/* 指针光：深色玻璃上的柔光，压过 m-glow 浅色配方 */
+.login-card > .glow-layer {
+  background: radial-gradient(circle 140px at var(--px) var(--py), rgba(255, 255, 255, .16), rgba(130, 221, 45, .07) 45%, transparent 72%);
+  mix-blend-mode: screen;
+}
+:root[data-theme="dark"] .login-card > .glow-layer {
+  background: radial-gradient(circle 140px at var(--px) var(--py), rgba(255, 255, 255, .14), rgba(130, 221, 45, .06) 45%, transparent 72%);
+  mix-blend-mode: screen;
+}
+/* 卡内文案与控件全部按深色玻璃走，不随全局主题 */
+.login-card { color: #eef2f1; }
 .login-card-inner { position: relative; z-index: 1; padding: 32px 32px 30px; }
-.login-card-title { margin-top: 8px; font-size: 26px; font-weight: 740; letter-spacing: -.03em; }
-.login-card-sub { margin-top: 4px; font-size: 13px; color: var(--ink-soft); }
+.login-card-title { margin-top: 8px; font-size: 26px; font-weight: 740; letter-spacing: -.03em; color: #fff; }
+.login-card-sub { margin-top: 4px; font-size: 13px; color: rgba(255, 255, 255, .55); }
+.login-card .field-label { color: rgba(255, 255, 255, .78); }
 .login-form { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
-.login-form .input-shell { height: 42px; }
-.captcha-row { display: flex; gap: 10px; }
-.captcha-row .input-shell { flex: 1; }
-.captcha-box {
-  width: 116px;
+.login-form .input-shell {
   height: 42px;
-  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(255, 255, 255, .13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+  color: rgba(255, 255, 255, .6);
+}
+.login-form .input-shell:hover { border-color: rgba(255, 255, 255, .22); }
+.login-form .input-shell:focus-within { outline-color: rgba(130, 221, 45, .55); }
+.login-form .input-shell input { color: #f2f5f4; }
+.login-form .input-shell input::placeholder { color: rgba(255, 255, 255, .35); }
+.login-form .input-affix {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-soft);
+  width: 26px;
+  height: 26px;
+  margin-right: -6px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .45);
+  transition: color .15s ease;
+}
+.login-form .input-affix:hover { color: rgba(255, 255, 255, .85); }
+.login-form .checkbox { color: rgba(255, 255, 255, .72); }
+.login-form .checkbox-box { border-color: rgba(255, 255, 255, .26); background: rgba(255, 255, 255, .05); }
+/* 验证码：输入框与验证码图合成一体控件 */
+.captcha-group { display: flex; align-items: stretch; }
+.captcha-group .input-shell { flex: 1; border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.captcha-group .captcha-box {
+  width: 116px;
+  height: 42px;
+  margin-left: -1px;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-left-color: rgba(255, 255, 255, .07);
+  background: rgba(255, 255, 255, .08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, .6);
   flex: none;
 }
-.captcha-code { display: inline-flex; gap: 4px; font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: .02em; }
+.captcha-group:focus-within .captcha-box { border-color: rgba(130, 221, 45, .55); border-left-color: rgba(130, 221, 45, .35); }
+.captcha-code { display: inline-flex; gap: 4px; font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: #f2f5f4; letter-spacing: .02em; }
 .captcha-code span { display: inline-block; }
 .login-options { display: flex; align-items: center; justify-content: space-between; }
 .login-error {
@@ -165,8 +218,10 @@
   padding: 9px 12px;
   border-radius: var(--r-sm);
   font-size: 12.5px;
-  color: var(--red-text);
-  background: var(--red-soft);
+  color: #ff9d94;
+  background: rgba(255, 90, 80, .13);
+  border: 1px solid rgba(255, 90, 80, .22);
+  box-shadow: inset 2px 0 0 rgba(255, 90, 80, .7);
 }
 .login-submit-slot { display: flex; justify-content: center; margin-top: 4px; min-height: 46px; }
 .login-submit { height: 46px; font-size: 14px; border-radius: var(--r-md); }
@@ -185,17 +240,21 @@
 .success-orb circle { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 2.4; transform: rotate(-90deg); transform-origin: 50% 50%; }
 .success-orb path { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 
-@media (max-width: 1180px) {
-  .canvas-main { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 1280px) {
+  .canvas-main { grid-template-columns: minmax(0, 1fr); max-width: min(62%, 720px); }
   .login-dial { display: none; }
 }
 @media (max-width: 960px) {
-  .login { grid-template-columns: minmax(0, 1fr); padding: 0; }
+  .login { grid-template-columns: minmax(0, 1fr); }
   .login-canvas { display: none; }
-  .login-side { min-height: 100dvh; padding: 32px 16px; }
+  .login-side { grid-area: 1 / 1 / 2 / 2; min-height: 100dvh; padding: 32px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .login-card { will-change: auto; }
+  .dial-tick.is-now { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .login-card { backdrop-filter: none; -webkit-backdrop-filter: none; background: #181d20; }
 }
 
 /* ── 工作台 · 主次布局（Bento） ──────────────────────────────── */
@@ -510,10 +569,23 @@
    运动主体先是「星球」后是「浮牌」，两者的 CSS 位置都由脚本用 transform 驱动，
    所以不占布局；浮牌的基准位置钉在真实页头标题上，落回来时严丝合缝。
    注意：没有全屏遮罩，也没有去往右上角的线条。 */
+/* 登录转场特效层：天幕（银河底，穿越段全程暗场防闪）+ additive 画布。z-80 低于欢迎链 90 */
+.transit-layer { position: fixed; inset: 0; z-index: 80; pointer-events: none; }
+.transit-sky {
+  position: absolute; inset: 0; opacity: 0;
+  background:
+    radial-gradient(60% 50% at 68% 38%, rgba(130, 221, 45, .12), transparent 70%),
+    radial-gradient(50% 45% at 22% 78%, rgba(76, 141, 255, .1), transparent 70%),
+    radial-gradient(120% 100% at 50% 50%, #10141a 0%, #07090d 68%, #040506 100%);
+}
+.transit-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
 .welcome-layer { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
 .welcome-dust { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* 坠落的星球：一颗带内高光的发光球，坠落时靠尾迹粒子拉出轨迹 */
+/* 坠落的星球：一颗带内高光的发光球，坠落时靠尾迹粒子拉出轨迹。
+   默认 opacity:0——组件挂载到开播之间可能有等待窗口（等转场特效 release），
+   不藏的话会以默认位置 (0,0) 露出在页面左上角；各播放段均由 GSAP 显式拉起 */
 .welcome-orb {
   position: absolute;
   left: 0;
@@ -525,12 +597,13 @@
   box-shadow: 0 0 22px 5px rgba(130, 221, 45, .42), 0 0 58px 16px rgba(130, 221, 45, .2);
   transform-origin: center center;
   will-change: transform, opacity;
+  opacity: 0;
 }
 :root[data-theme="dark"] .welcome-orb {
   box-shadow: 0 0 26px 6px rgba(168, 240, 90, .5), 0 0 70px 20px rgba(168, 240, 90, .22);
 }
 
-/* 炸开的冲击波环：一圈细描边，快速扩散后淡尽 */
+/* 炸开的冲击波环：一圈细描边，快速扩散后淡尽。默认 opacity:0，同上 */
 .welcome-shock {
   position: absolute;
   left: 0;
@@ -543,6 +616,7 @@
   box-shadow: 0 0 26px 4px rgba(130, 221, 45, .45), inset 0 0 22px 2px rgba(130, 221, 45, .3);
   transform-origin: center center;
   will-change: transform, opacity;
+  opacity: 0;
 }
 /* 副环：更细更淡、慢半拍，与主环拉开层次 */
 .welcome-shock--thin { border-width: 1px; box-shadow: none; }

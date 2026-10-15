@@ -1,0 +1,42 @@
+{
+  "w2560": {
+    "loginBg": "rgb(15, 18, 20)",
+    "cardBg": "rgba(255, 255, 255, 0.06)",
+    "cardBlur": "blur(24px) saturate(1.15)",
+    "cardRadius": "24px",
+    "scrim": true,
+    "dialNowTick": true,
+    "captchaMergedRadius": "12px",
+    "captchaLeftBorder": "rgba(255, 255, 255, 0.07)",
+    "glowLayer": true,
+    "platesColumns": 4,
+    "checkedAt": 1791972258605
+  },
+  "w1440": {
+    "loginBg": "rgb(15, 18, 20)",
+    "cardBg": "rgba(255, 255, 255, 0.06)",
+    "cardBlur": "blur(24px) saturate(1.15)",
+    "cardRadius": "24px",
+    "scrim": true,
+    "dialNowTick": true,
+    "captchaMergedRadius": "12px",
+    "captchaLeftBorder": "rgba(255, 255, 255, 0.07)",
+    "glowLayer": true,
+    "platesColumns": 4,
+    "checkedAt": 1791972261768
+  },
+  "passwordToggle": {
+    "initial": "password",
+    "afterToggle": "text",
+    "restored": "password"
+  },
+  "errorText": "验证码错误或已过期",
+  "okLogin": "ok:K9FT",
+  "landedDashboard": true,
+  "w390": {
+    "pathname": "/login",
+    "canvasHidden": true,
+    "cardBg": "rgba(255, 255, 255, 0.06)",
+    "loginBg": "rgb(15, 18, 20)"
+  }
+}

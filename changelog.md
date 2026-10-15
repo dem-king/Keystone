@@ -1,5 +1,59 @@
 # Changelog
 
+## 2026-10-15（登录转场特效：消散 → 曲率穿越 → 星体脱出接管欢迎链）
+
+在闪黑修复（见下节）基础上，把「干巴巴淡出」升级为特效转场。设计文档 `docs/plans/2026-10-15-login-warp-transit-design.md`（附实施计划同名片段文件）。
+
+**改法**
+- 新增 `components/welcome/WarpTransit.vue`（挂在 `App.vue`，`v-if=transitActive` 跨路由切换存活，`pointer-events: none`）：对勾收尾后登录页 DOM 消散（粒子按登录页元素矩形采样接续轮廓）→ 天幕（不透明暗色银河底，防闪白/闪黑的根基）拉起 → 曲率光丝加速巡航 → 切路由全程暗场 → 减速 + 脱出星弧线飞抵欢迎链星球起点 → `transitReleased` 放行欢迎链 → 天幕抬起自卸。canvas 走 `lighter` additive。
+- `composables/welcome.ts`：新增 `transitActive / transitReleased / transitSwapped / transitAbort` 状态与 `startTransit() / setTransitSwapped()` 驱动函数；`beginHandoff()` 重建启动信号；`finishHandoff()` 统一置 `transitAbort`（特效层随之 0.18s 快速淡出）；`ARRIVE_BUDGET` 3600→4200（欢迎链起跑推迟后的守卫窗口）。
+- `composables/motion.ts`：`playLoginExit` 更名 `playLoginDissolve`——只淡出面板，不再动登录页根本色（暗场交给天幕）；`restoreLoginStage` 同步简化。
+- `Login.vue`：对勾描完即走（砍掉回弹尾巴省 ~0.5s）→ `startTransit()` → 消散+warm 并行 → 250ms 建立光丝速度 → `markArrived` → `router.replace` → 失败走 abort 还原（含 `succeeded=false` 按钮还原），成功 `setTransitSwapped()`。
+- `WelcomeChain.vue`：onMounted 先等 `transitReleased`（兜底 3s 直开）再量标题开播；**浮牌/星球/冲击环/柔光闪在挂载第一帧即 `opacity: 0`**（等 release 的窗口若未隐藏，会以默认位置 (0,0) 露出左上角）。
+- `styles/pages.css`：新增 `.transit-layer/.transit-sky/.transit-canvas`（z-80，低于欢迎链 90）；`.welcome-orb/.welcome-shock` 补默认 `opacity: 0`（CSS 兜底 + JS 双保险）。
+
+**验证（真实环境 8090 + 5180，CDP `scripts/verify-warp-transit.mjs` 四场景 30 项断言全绿，`vue-tsc --noEmit` 通过）**
+- light/dark：特效层挂载 → 消散中间态 → 切路前 8 帧天幕 opacity>0.9（暗场铺满）→ 欢迎链接管 → 特效层自卸 → 工作台稳定；screencast 全帧亮度无单帧跳变（阈值 120；轨迹 17→29→133→211→232 为低帧率采样下的连续渐亮）。
+- reduce：特效层从不挂载，直接进工作台。
+- abort（Fetch 拦截 `/auth/routes` 返 500）：导航被守卫驳回（duplicated failure）→ 回登录页、提交按钮还原（DOM 校验 `.login-submit` 在、`.success-orb` 除）、特效层随 abort 卸掉、无 JS 异常。
+- 修复过程中发现并解决：WelcomeChain import 漏 `transitReleased`；等 release 窗口暴露 plate（白块）与 orb（绿球）于左上角——提前初始隐藏 + CSS 默认隐藏。
+
+## 2026-10-15（登录转场闪黑修复：退场尾段桥接舞台底 + 落点页 chunk 预取）
+
+用户反馈登录成功跳转首页的动画中间有一拍闪黑、割裂。逐帧复现定位：退场动画播完后，屏幕停在登录页裸底色 `#0f1214` 约 130ms（等落点页懒加载 chunk + 外壳挂载），再硬切到浅色外壳——这一拍全黑就是闪黑。
+
+**根因（两层叠加）**
+1. 切换时才解析 `/dashboard` 的懒加载组件，chunk 网络请求全部落在「退场播完 → 外壳首帧」的关键路径上；
+2. 退场只淡出了画布/卡片/侧栏三个面板，登录页根本身的深色底没处理——退场终点是「全黑」，与外壳之间没有任何桥接。
+
+**改法**
+- `router/index.ts` 新增 `preloadHome()`：resolve 落点路由并调用其懒加载组件函数，把 chunk 提前。`Login.vue` 登录成功后 fire-and-forget（对勾动画的 1.4s 足够加载完），失败不阻塞、切换时照常按需加载。
+- `motion.ts playLoginExit`：退场尾段（0.28s 起 0.3s）把登录页根本色 `#0f1214` 同步化到透明，露出 body 的 `--stage` 舞台底——与工作台同源，「深色画布沉走 → 舞台底 → 框体在舞台底上装起」成为连续渐变，不再是黑场硬切。
+- `motion.ts restoreLoginStage()` + `Login.vue` 失败分支：导航被取消（会话过期等）仍停在登录页时，还原退到透明态的面板与底色——修复同场景原有的「面板全透明空场」隐患。
+
+**验证（真实环境 8090 + 5180，CDP screencast 全帧亮度分析 `scripts/shot-handoff-flash.mjs`）**
+- 修复前：亮/暗主题均在切换前出现 7~8 帧（≈120ms）亮度 17 的全黑帧，随后硬切。
+- 修复后：全帧亮度呈 20→27→33→…→222 连续渐变（约 14 帧），无单帧骤降；chunk 请求实测发生在点击后 +167ms（预取生效，不在切换关键路径）。
+- 回归 `scripts/verify-welcome.mjs` 四场景（浅/深/减少动态/连点守卫）全部通过；`vue-tsc --noEmit` 通过。
+
+## 2026-10-14（登录页全屏深色沉浸 · 分支 feature/login-dark-immersion）
+
+用户反馈登录页右侧大面积浅灰留白、底部能力条偏小、表单缺细节。确认方案后实施：全屏深色沉浸 + 表单交互细节 + 动效增强 + 三档响应式。
+
+**改法**
+- 布局：`Login.vue` + `styles/pages.css` 从「左深右浅双栏」改为单一全屏深色画布（`#0f1214`，明/暗主题下恒定，不进主题切换）；NeuralNet 粒子网络铺满视口并以 scrim 渐变压暗保可读性；左侧文案/表盘限宽在左栏不侵入卡片列。
+- 登录卡：深色玻璃质感（白 6% 透明底 + blur 24px + 1px 白边 + 顶部内高光），宽 400px 垂直居中；指针光出深色变体（mix-blend screen）；`m-float` 浅底配方不再用于登录卡。
+- 底部能力条：服务健康 + 四项能力合并为通栏玻璃条，title 13.5px / desc 12px，四列一排。
+- 表单：TextInput 新增 `#trailing` 插槽，密码框内嵌眼睛图标切换可见性（新增 `eyeOff` 图标）；验证码输入框与验证码图合成一体控件（共享外框、左右圆角）；接口级错误改玻璃警示条（左竖红线），失败时登录卡轻微水平抖动；「记住登录状态」文字改浅色可读。
+- 动效：时钟当前秒刻度叠加呼吸光晕（`dial-breathe` 1.6s，`prefers-reduced-motion` 跳过）；`playLoginExit` 无幕交接与开场编排选择器不变，登录成功链路实测未破坏。
+- 响应式：≥1280px 完整双区（表盘可见）；<1280px 隐藏表盘；<960px 隐藏左画布、纯深色底 + 居中玻璃卡。
+
+**验证（真实环境 8090 + 5180，CDP 脚本 `scripts/verify-login-dark.mjs`）**
+- `vue-tsc --noEmit && vite build` 通过。
+- 三档截图：2560 / 1440 / 390 均符合预期（`verify-login-dark-*.png`）；断言 JSON 全绿（`verify-login-dark-checks.json`）。
+- 交互：密码可见性切换 password→text→password；错误验证码弹出「验证码错误或已过期」警示条；正确验证码登录成功进 `/dashboard`。
+- 设计文档：`docs/plans/2026-10-14-login-dark-immersion-design.md`。
+
 ## 2026-10-14（登录日志 IP：本机回退真实网卡 + 代理透传访问者地址）
 
 用户反馈登录日志 IP 全是 `127.0.0.1`，要求记录各电脑自己的真实 IP（本机也一样）。
