@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-10-19（登录动画可打断：用户一动手就收场，页面与数据立刻恢复）
+
+用户诉求：登录成功后的动画，如果在播放期间点菜单 / 点按钮 / 做别的操作，必须**立刻打断**，数据显示立即恢复正常。
+
+**原行为**
+- `handoffActive` 为真时（登录退场 + 切页后 5.4s 内）`pointerdown/click` 在 document 捕获阶段被 `preventDefault + stopPropagation` 拦死，用户点菜单没反应；
+- 5.4s 后点击放行，但欢迎链仍会跑到 ~12s：它量下的 `.page-title` 属于上一页，切页后浮牌会飞向已不存在的锚点，`.user-chip` 继续被压成透明，页头也可能停在 `opacity: 0`。
+
+**改法**
+- `composables/welcome.ts`：新增 `welcomeAbort` 信号与 `abortWelcome()`（置位 + `finishHandoff()`，立即撤掉 arrive 预算与点击拦截）；`beginHandoff` 每次交接清零该信号；`blockThrough` 只在 `leaving` 段拦截——`arriving` 起一律放行，点了就打断。
+- `WelcomeChain.vue`：挂载后旁听 `pointerdown / keydown / wheel`（纯修饰键忽略），命中即 `abortWelcome()`；`watch(welcomeAbort)` → `stopNow()`：杀全部注册时间轴与 `killTweensOf`、取消 `typeOut`、清掉牌底粒子 interval、停 canvas 帧循环、清 `is-typing/is-sheen`、把本层元素压回 `opacity: 0`，并**还原被本层藏起来的 `.page-title` 与 `.user-chip`（含头像 transform）**，随后 `finish()` 卸载图层。`played()` / `wait()` 在 `aborted` 后永不给 resolve——链条停在当前 await，不会继续开新的一段把刚收掉的元素重新点亮；各段 await 后另加 `if (aborted) return`。
+- `WarpTransit.vue`：关键 await 后补 `if (settled) return`，被打断后不再起星球 / 不再飞脱出星；退场仍走既有 0.18s 天幕淡出。
+- `AppShell.vue`：`route.fullPath` 变化时若仍在欢迎中，一并 `abortWelcome()`（覆盖快捷键、前进后退、程序化跳转）。
+
+**验证（真实环境 8090 + 5180，新增 `keystone-vue/scripts/verify-welcome-interrupt.mjs`，三场景 39 项断言全绿，`vue-tsc --noEmit` 通过）**
+- `menu`：浮牌已浮现时用 CDP 真实鼠标点「用户管理」→ 欢迎层 **47~59ms** 内卸载，点击照常生效切到 `/system/user`，页头标题 op=1、头像 op=1、表格 3 行就位。
+- `transit`：刚切到工作台、天幕还盖着时点菜单 → 天幕 **255ms** 退净、切页成功、页面即刻可用。
+- `key`：动画中按键 → **5~6ms** 收场，停留 `/dashboard`，标题「下午好，爸爸」与 9 张数据卡片全部可见。
+- 回归：`verify-welcome-v2.mjs` 十拍全 PASS（不打断时完整播放 ≈13.2s，chip/title 收尾正常）。
+
 ## 2026-10-15（登录转场特效：消散 → 曲率穿越 → 星体脱出接管欢迎链）
 
 在闪黑修复（见下节）基础上，把「干巴巴淡出」升级为特效转场。设计文档 `docs/plans/2026-10-15-login-warp-transit-design.md`（附实施计划同名片段文件）。
@@ -605,3 +625,22 @@
 - 新增 `scaffold-vue/src/api/portal.ts` 和 API 映射测试，将工作台、工作流、代码生成器页面从前端 Mock 切换为真实接口。
 - 新增 `docs/backend-architecture.md`，说明后端 Maven 模块、包类类型、业务边界和主要字段中文含义。
 - 完成验证：`npm run test:api` 通过 8 个前端 API 测试，`npm run build` 通过，`mvn -pl scaffold-admin -am test` 通过 21 个后端测试，并完成真实后端与 Vite `/api` 代理接口联调。
+- 登录转场补上「同一颗星」链路：登录按钮收拢成圆后化星（蓝壳褪去、星体长出），由 `WarpTransit` 同点同尺寸接管并飞入曲率穿越，不再是按钮演完后另起一段。
+- 欢迎链接入右上角用户信息：星球先落到 `.user-chip` 头像上，绽开成「所属部门」气泡（垂落到胶囊正下方、右缘对齐胶囊、带尖角指向头像），再收束成星坠向中央；文案走模板插值，避免 `currentUser` 刷新时被重渲染清空。
+- 身份信息形态定稿为**气泡**（原横条方案作废）：`left/top/width/height/radius` 五属性同一条补间，从 48×48 正圆垂落摊开成 190×64 圆角矩形，沿途 `blur(5px)→0` 凝结、部门名逐字落下；收束按原路收回成圆、升回头像位置，星再从中过冲弹出。
+- 欢迎链新增名字分裂与双归宿：问候语中的用户名一分为二，主份随整句吸附回页头标题，副份飞回右上角胶囊并与之等量交叉；胶囊在链条期间由欢迎链接管，交接后才亮起。
+- 新增 `resolveIdentityAnchor()` 统一量取身份锚点，`WarpTransit` 脱出落点与欢迎链星归起点共用，消除双星与错位；新增 `transitIgnited` 信号替代 `Login` 里的裸 `wait(250)`，避免星球还在飞就切路由。
+- `playShellEntrance` 在交接期把 `.user-chip` 排除出 stagger 补间（两条 tween 同帧写 opacity 会抖）；`ARRIVE_BUDGET` 4200→5400，欢迎层安全阀 6s→12s，窄屏 <760 直接跳过链条以免胶囊被藏。
+- 问候语归位重做：`x/y/scale/rotation` 改由**一条二次贝塞尔 + 单参数 t** 驱动（原来 x 用 `expo.out`、y 用两段 keyframes，合成轨迹中段会拐直角）；缓动改 `power3.inOut`（两端静止的场景不能用 `out`，第一帧就是 3 倍速）；拖尾粒子改为沿运动反方向撒。
+- 修正浮牌基准中心测量时机：`baseCX` 必须在清空文本**之前**量（清空后牌宽塌成 padding，基准中心偏 65px，归位第一帧会向右甩一下）。落定回弹与交接交叉同步收轻（1.012 / 0.24s）。
+- 名字分裂改为字符级：主副两份都拆成单字 `<span>`，主份奇偶交错上下颤动、副份逐字向右上错开（stagger 0.035）；名字中心加一道 3px 光缝（白芯 + 双层绿光，张开淡出）；分裂点炸 14 颗碎屑。
+- 修正副份与主份字号不一致：去掉 `scale 1.05` 与字距 `.2em` 扩散，字号/字重/字距从主份逐项复制（字距写 `-0.03em`，避免 computed 的 `-0.84px` 被舍成 `-1px`）。
+- 星球落在右上角改为**撞击**：先压扁（`scaleX 1.34 / scaleY 0.56`）再 `back.out(3.2)` 回弹，配双冲击环、柔光闪与 26 颗碎屑；身份气泡期间不再显示头像。
+- 双宿落点加「彗星撞地球」式余波：副份砸进胶囊时双冲击环从胶囊扩散、碎屑四散、星野提亮，胶囊 0.12s 亮起后头像从 0.3 过冲到 1 弹出（`restoreChip` 同步清理头像 transform）。
+- 新增退出登录的收拢式退场（2.75s）：标题里的名字被抽成一道光飞回胶囊 → 胶囊脉冲接住 → 页面亮度收拢 → 胶囊缩成光点 → 光点飞入中央、天幕铺满 → 登录页在暗场里依次浮现（跳过整套 intro）。
+- 新增 `composables/exit.ts` 与 `components/welcome/ExitChain.vue`；`auth.logout()` 支持 `keepSession`，退出顺序固定为「动画 → clearSession → replace」，避免路由守卫把导航踢回工作台。
+- 退场暗场加「入夜星野」：星星按各自出生时间一颗颗亮起（幂次分布偏后，前段零星、后段铺满），每颗 0.34s 淡入后进入闪烁；天幕铺满后停 0.42s 让星空铺满，再随天幕同步淡出。
+- 退场视觉返工：天幕改为从光点位置 `clip-path: circle` 炸开（不再整层淡入＝盖遮罩）；页面收拢改用 `opacity + scale` 并从卡片/导航飞出 46 颗碎屑被胶囊吸走；胶囊接住时放大到 1.14；光点膨胀到 3.4 倍后吞没。
+- 修正抽名被 Vue 覆盖的问题：不再改 `.page-title` 的 DOM，改为在标题位置盖克隆层、真实标题隐藏。
+- 退场在抽名的同一刻开始整页渐暗：暗幕 `.exit-dim` 在 1.5s 内压到 0.55（`power1.in`），与后续天幕炸开衔接；元素透明度只压到 0.35，避免浅色主题下「露白底」。
+- 验证：`npm run build`（含 `vue-tsc`）通过；新增 `keystone-vue/scripts/verify-welcome-v2.mjs`，按动画状态逐帧抓取化星/起飞/融入/星归/工牌/分裂/双宿/握手十拍，十项全 PASS、无页面错误、无横向滚动。

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { sessionVersion } from './auth'
-import { motionSkipped } from './motion'
+import { gsap, motionSkipped } from './motion'
 
 /* ============================================================
    登录转场（无幕交接）：没有任何全屏覆盖层——
@@ -27,25 +27,56 @@ export const transitActive = ref(false)    // 特效层在场（含待命）
 export const transitReleased = ref(false)  // 星体到达：WelcomeChain 起跑信号
 export const transitSwapped = ref(false)   // 路由已切换：特效层可进入减速+脱出段
 export const transitAbort = ref(false)     // 交接被撤回：特效层快速淡出
+export const transitIgnited = ref(false)   // 星球融入中央、光丝加速已建立：Login 据此切路由
+/** 用户操作打断了登录动画：欢迎链立刻收场，页面与输入即刻恢复正常。
+ *  只置位、不复位——每次交接开始时由 beginHandoff 清零。 */
+export const welcomeAbort = ref(false)
+
+/** 右上角「身份锚点」：`.user-chip` 头像中心的视口坐标。
+ *  WarpTransit 的脱出落点与 WelcomeChain 的星归起点共用同一个函数——
+ *  两处各算一次就会在 shell 入场位移、头像缺失等边界上错开，读作「两颗星」。
+ *  量不到（窄屏 meta 隐藏、外壳未挂载）时由调用方回落到 `(vw-150, 116)`。 */
+export function resolveIdentityAnchor(): { x: number; y: number } | null {
+  if (typeof document === 'undefined') return null
+  const chip = document.querySelector<HTMLElement>('.user-chip')
+  if (!chip) return null
+  const chipRect = chip.getBoundingClientRect()
+  if (!chipRect.width) return null
+  const avatar = chip.querySelector<HTMLElement>('.avatar')
+  const rect = avatar && avatar.getBoundingClientRect().width ? avatar.getBoundingClientRect() : chipRect
+  // 外壳入场期间 chip 可能还带着 GSAP 的 y/x 位移：反推布局位置，落点才不会差 8~10px
+  const shiftY = Number(gsap.getProperty(chip, 'y')) || 0
+  const shiftX = Number(gsap.getProperty(chip, 'x')) || 0
+  return {
+    x: (avatar ? rect.left + rect.width / 2 : chipRect.left + 20) - shiftX,
+    y: (avatar ? rect.top + rect.height / 2 : chipRect.top + chipRect.height / 2) - shiftY,
+  }
+}
 
 let signalTransitStart: () => void = () => undefined
 /** 每次交接一份新的启动信号；WarpTransit onMounted 时读取（挂载由 transitActive 触发，晚于重建） */
 export let transitBegin: Promise<void> = Promise.resolve()
 
-/** arriving 的总预算：外壳滑入 + 欢迎链前段（铭牌 → 打字 → 抽线 → 亮点起飞）
- *  的全部时长，到点收尾。欢迎链尾段（亮点飞行后半 + 抵达 + 退场）不阻塞点击，
- *  欢迎层本身 pointer-events: none，用户此时点导航不影响它自己淡出。 */
-const ARRIVE_BUDGET = 4200
+/** arriving 的总预算：外壳滑入 + 欢迎链前段（星归身份胶囊 → 工牌展开 → 坠落 → 铭牌浮现）
+ *  的全部时长，到点收尾。欢迎链尾段（打字 / 分裂 / 双归宿 / 交接）不阻塞点击，
+ *  欢迎层本身 pointer-events: none，用户此时点导航不影响它自己淡出。
+ *  2026-10-19：前段新增「星归 + 部门工牌」，4200 → 5400。
+ *  2026-10-19：改为可打断——用户一动手就 abortWelcome()，不再等这个预算。 */
+const ARRIVE_BUDGET = 5400
 let arriveTimer = 0
 
 /** 登录成功、开始退场前调用。减少动态效果或页面在后台时不激活，登录页直接切换 */
 export function beginHandoff() {
-  if (handoffActive.value || motionSkipped()) return
+  if (handoffActive.value) return
+  // 打断标记按「每次交接」重置：上一次被用户点掉的那一份不能污染这一次
+  welcomeAbort.value = false
+  if (motionSkipped()) return
   transitBegin = new Promise<void>(resolve => { signalTransitStart = resolve })
   transitActive.value = true
   transitReleased.value = false
   transitSwapped.value = false
   transitAbort.value = false
+  transitIgnited.value = false
   handoffActive.value = true
   handoffPhase.value = 'leaving'
   installGuards()
@@ -75,6 +106,16 @@ export function finishHandoff() {
   handoffActive.value = false
   handoffPhase.value = 'idle'
   removeGuards()
+}
+
+/** 用户操作打断欢迎动画（点菜单 / 点按钮 / 滚轮 / 按键 / 切页都算）。
+ *  这个动画不是「必须看完的广告」：立刻停层、立刻把标题与头像还回去、
+ *  立刻解除输入拦截，后续操作一步都不用等。
+ *  真正的视觉收场在 WelcomeChain 里（它持有元素与时间轴），这里只负责发信号。 */
+export function abortWelcome() {
+  if (welcomeAbort.value) return
+  welcomeAbort.value = true
+  finishHandoff()
 }
 
 /* ── 工作台数据预热 ──────────────────────────────────────────────
@@ -111,9 +152,11 @@ export function clearWarmedDashboard() {
   warming = null
 }
 
-/* ── 点击拦截：转场期间页面在动，连点不能漏给（退场中的登录页 / 组装中的工作台） ── */
+/* ── 点击拦截：只在「登录页退场」这一小段拦——那时页面正在化星、路由还没切，
+   点下去只会点到正在消失的东西。arriving 起一律放行：用户想点哪儿就点哪儿，
+   点了就 abortWelcome() 立刻收场（见 WelcomeChain 的手势监听）。 ── */
 function blockThrough(event: Event) {
-  if (!handoffActive.value) return
+  if (handoffPhase.value !== 'leaving') return
   event.preventDefault()
   event.stopPropagation()
 }

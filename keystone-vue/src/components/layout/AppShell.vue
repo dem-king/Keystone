@@ -7,10 +7,11 @@ import WelcomeChain from '@/components/welcome/WelcomeChain.vue'
 import CommandPalette from './CommandPalette.vue'
 import AppearanceDialog from './AppearanceDialog.vue'
 import PasswordDialog from './PasswordDialog.vue'
-import { logout } from '@/composables/auth'
+import { clearSession, logout } from '@/composables/auth'
 import { appearance } from '@/composables/appearance'
-import { pageEnter, pageLeave, playShellEntrance } from '@/composables/motion'
-import { finishHandoff, handoffActive, handoffPhase } from '@/composables/welcome'
+import { pageEnter, pageLeave, playShellEntrance, gsap } from '@/composables/motion'
+import { abortWelcome, finishHandoff, handoffActive, handoffPhase } from '@/composables/welcome'
+import { beginExit, markExitSwapped } from '@/composables/exit'
 import { confirm } from '@/composables/confirm'
 
 const route = useRoute()
@@ -45,9 +46,13 @@ let welcomeGuard = 0
 function onWelcomeDone() {
   welcoming.value = false
   window.clearTimeout(welcomeGuard)
+  // 兜底：链条异常中断时把右上角胶囊摘回可见态，别让用户永远看不到自己的头像
+  const chip = document.querySelector<HTMLElement>('.user-chip')
+  if (chip) gsap.set(chip, { clearProps: 'opacity' })
 }
-// 安全阀：链条若因异常中断没有报 done，兜住这一层不让它常驻
-onMounted(() => { if (welcoming.value) welcomeGuard = window.setTimeout(onWelcomeDone, 6000) })
+// 安全阀：链条若因异常中断没有报 done，兜住这一层不让它常驻。
+// 链条自身约 7s（星归 → 工牌 → 坠落 → 打字 → 分裂 → 双归宿），这里留 12s。
+onMounted(() => { if (welcoming.value) welcomeGuard = window.setTimeout(onWelcomeDone, 12000) })
 
 function toggleRail() {
   if (mobile.value) mobileOpen.value = !mobileOpen.value
@@ -57,8 +62,13 @@ function toggleRail() {
 async function onLogout() {
   const ok = await confirm({ title: '退出登录', message: '确认退出当前账号吗？', confirmText: '退出' })
   if (!ok) return
-  const task = logout()
+  // 顺序不能换：退场动画播到暗场铺满 → 才清会话 → 才切路由。
+  // 早清会让守卫把导航踢回工作台；晚清则跳不到登录页（守卫见 authed 仍为真）。
+  await beginExit()
+  const task = logout({ keepSession: true })
+  clearSession()
   await router.replace({ name: 'login' })
+  markExitSwapped()
   await task
 }
 
@@ -82,7 +92,12 @@ function onPageEnter(el: Element, done: () => void) {
   pageEnter(el, done, { cards: handoffPhase.value !== 'arriving', handoff: handoffPhase.value === 'arriving' })
 }
 
-watch(() => route.fullPath, () => { mobileOpen.value = false })
+watch(() => route.fullPath, () => {
+  mobileOpen.value = false
+  // 交接中换了页（菜单 / 快捷键 / 前进后退）：欢迎动画立刻收场。
+  // 它量下来的标题属于上一页，继续播只会把浮牌飞到一个已经不存在的锚点上。
+  if (welcoming.value) abortWelcome()
+})
 
 onMounted(() => {
   syncMobile()

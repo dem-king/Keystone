@@ -154,10 +154,12 @@ export function clearSession() {
   clearDeptCache()
 }
 
-export async function logout() {
+/** 退出登录。`keepSession` 供退场动画使用：先拿旧 token 发请求，会话由调用方在
+ *  动画播完之后再清（早清会让路由守卫立刻把导航踢回工作台） */
+export async function logout(opts: { keepSession?: boolean } = {}) {
   // 先捕获旧 token 发出退出请求，再同步清理；慢请求不能留下旧菜单或清掉新会话。
   const task = authSession.isAuthenticated() ? authApi.logout() : Promise.resolve()
-  clearSession()
+  if (!opts.keepSession) clearSession()
   try {
     await task
   } catch (error) {

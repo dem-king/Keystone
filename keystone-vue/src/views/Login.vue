@@ -9,7 +9,8 @@ import Checkbox from '@/components/ui/Checkbox.vue'
 import { ApiError, authApi, portalApi } from '@/api'
 import NeuralNet from '@/components/NeuralNet.vue'
 import { login } from '@/composables/auth'
-import { beginHandoff, finishHandoff, markArrived, prefetchDashboard, setTransitSwapped, startTransit } from '@/composables/welcome'
+import { beginHandoff, finishHandoff, markArrived, prefetchDashboard, setTransitSwapped, startTransit, transitIgnited } from '@/composables/welcome'
+import { exitActive } from '@/composables/exit'
 import { EASE, afterTwoFrames, gsap, motionSkipped, playLoginDissolve, prefersReducedMotion, restoreLoginStage, trackGlow } from '@/composables/motion'
 import { ensureRoutes, preloadHome } from '@/router'
 import { required, validate } from '@/utils/validate'
@@ -31,6 +32,14 @@ const root = ref<HTMLElement | null>(null)
 const card = ref<HTMLElement | null>(null)
 const succeeded = ref(false)
 const wait = (ms: number) => new Promise<void>(resolve => window.setTimeout(resolve, ms))
+
+/** 等转场特效层点火（光丝加速已建立）再补一小段余量；减少动效时直接放行 */
+async function waitIgnited(extra: number) {
+  if (motionSkipped()) return
+  const t0 = performance.now()
+  while (!transitIgnited.value && performance.now() - t0 < 2000) await wait(50)
+  await wait(extra)
+}
 
 /* ── 左侧仪表：实时时钟（秒针刻度逐格推进）与服务健康 ── */
 const now = ref(new Date())
@@ -79,8 +88,11 @@ function shakeCard() {
   gsap.to(card.value, { keyframes: [{ x: -7 }, { x: 6 }, { x: -4 }, { x: 2 }, { x: 0 }], duration: 0.42, ease: 'power1.out' })
 }
 
-/* ── 登录成功三拍：按钮收拢成圆（放）→ 对勾圆环描出（结）→ 进入外壳 ── */
+/* ── 登录成功四拍：按钮收拢成圆（放）→ 对勾圆环描出（结）→ 化星（放）
+      → 进入外壳。第四拍是给转场用的：圆不随页面淡出，它变成一颗星球，
+      由 WarpTransit 在同一坐标接走——否则「按钮演完了，然后另起一段」。 ── */
 const netBurst = ref(0)
+const morphing = ref(false)
 async function playSuccess() {
   succeeded.value = true
   netBurst.value += 1
@@ -89,12 +101,27 @@ async function playSuccess() {
   if (!orb || motionSkipped()) return
   const ring = orb.querySelector<SVGCircleElement>('circle')
   const check = orb.querySelector<SVGPathElement>('path')
+  const shell = orb.querySelector<HTMLElement>('.orb-shell')
+  const body = orb.querySelector<HTMLElement>('.orb-body')
   await new Promise<void>((resolve) => {
     const tl = gsap.timeline({ onComplete: resolve })
     tl.fromTo(orb, { width: orb.parentElement!.clientWidth }, { width: 46, duration: 0.42, ease: EASE.swap })
     if (ring) tl.fromTo(ring, { strokeDashoffset: 126 }, { strokeDashoffset: 0, duration: 0.5, ease: EASE.reveal }, '-=0.08')
     if (check) tl.fromTo(check, { strokeDashoffset: 24 }, { strokeDashoffset: 0, duration: 0.32, ease: EASE.settle }, '-=0.22')
-    // 对勾描完即走：回弹尾巴砍掉（省 ~0.5s），转场特效接棒
+  })
+  /* 化星：对勾是燃料不是残留——缩成光点被吸入圆心，圆环向外扩一圈散掉；
+     同时蓝壳褪去、星体长出。外壳与体用两层 opacity 交叉，渐变不可补间。 */
+  if (morphing.value) return
+  morphing.value = true
+  await new Promise<void>((resolve) => {
+    const tl = gsap.timeline({ onComplete: resolve })
+    if (check) tl.to(check, { scale: 0, opacity: 0, transformOrigin: '23px 23px', duration: 0.16, ease: 'power2.in' }, 0.02)
+    if (ring) tl.to(ring, { scale: 1.4, opacity: 0, transformOrigin: '23px 23px', duration: 0.34, ease: 'power2.out' }, 0.02)
+    if (shell) tl.to(shell, { opacity: 0, duration: 0.22, ease: 'power1.inOut' }, 0.06)
+    if (body) {
+      tl.to(body, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.5)' }, 0.06)
+      tl.fromTo(body, { scale: 0.82 }, { scale: 1, duration: 0.34, ease: 'back.out(1.7)' }, 0.06)
+    }
   })
 }
 
@@ -148,7 +175,10 @@ async function submit() {
       playLoginDissolve(el, resolve)
     })
     await Promise.all([dissolve, warm])
-    await wait(250) // 光丝加速段建立起速度再切换，切换全程暗场
+    // 光丝加速段建立起速度再切路由（切换全程暗场）。原来是固定 wait(250)，
+    // 「按钮 → 星球」前置段加进来之后它会变成「星球还在飞就切页」；
+    // 改等特效层的点火信号，超时 2s 兜底，信号丢失也不卡死。
+    await waitIgnited(250)
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
     // 切换前进入 arriving：工作台侧的框体浮现、导航滑入、卡片飞出从这一刻起算
     markArrived()
@@ -211,6 +241,18 @@ function onVisibility() {
   if (document.hidden && intro) intro.progress(1, false)
 }
 
+/** 从退场的暗场里浮现：面板依次从下方归位，不再播整套 intro（否则像「退出了两次」） */
+function playExitArrive() {
+  const el = root.value
+  if (!el) return
+  el.classList.add('is-entrance-ready')
+  if (motionSkipped()) return
+  const panels = el.querySelectorAll('.login-canvas, .login-side, .login-card')
+  gsap.fromTo(panels, { opacity: 0, y: 18 }, {
+    opacity: 1, y: 0, duration: 0.52, ease: EASE.reveal, stagger: 0.07, delay: 0.04, clearProps: 'transform',
+  })
+}
+
 onMounted(() => {
   refreshCaptcha()
   probeHealth()
@@ -219,7 +261,8 @@ onMounted(() => {
     tiltX = gsap.quickTo(card.value, 'rotationX', { duration: 0.6, ease: 'power3.out' })
     tiltY = gsap.quickTo(card.value, 'rotationY', { duration: 0.6, ease: 'power3.out' })
   }
-  playIntro()
+  if (exitActive.value) playExitArrive()
+  else playIntro()
   window.addEventListener('pointerdown', fastForward, { once: true })
   window.addEventListener('keydown', fastForward, { once: true })
   document.addEventListener('visibilitychange', onVisibility)
@@ -349,6 +392,8 @@ onBeforeUnmount(() => {
             <div class="login-submit-slot">
               <Button v-if="!succeeded" type="submit" variant="primary" block :loading="submitting" class="login-submit">登录</Button>
               <div v-else class="success-orb" role="status" aria-label="登录成功，正在进入">
+                <span class="orb-shell" aria-hidden="true" />
+                <span class="orb-body" aria-hidden="true" />
                 <svg width="30" height="30" viewBox="0 0 46 46" aria-hidden="true">
                   <circle cx="23" cy="23" r="20" stroke-dasharray="126" />
                   <path d="m15 23.5 5.5 5.5L31.5 18" stroke-dasharray="24" />

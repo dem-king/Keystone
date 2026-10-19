@@ -166,14 +166,19 @@ export function revealPage(page: HTMLElement | null) {
 export function playShellEntrance(frame: HTMLElement, strong = false) {
   if (skipMotion()) {
     frame.classList.add('is-entrance-ready')
+    gsap.set(frame.querySelectorAll('.user-chip'), { clearProps: 'opacity' })
     return
   }
   const brand = frame.querySelectorAll('.rail-brand')
   const groups = frame.querySelectorAll('.nav-group')
-  const top = frame.querySelectorAll('.topbar > *')
+  // 用户胶囊在交接期交给欢迎链接管（星先归位到这里，副份回来时才亮起）。
+  // 它不能进 stagger 补间：两条 tween 同帧写同一个 opacity，读起来就是抖。
+  const top = frame.querySelectorAll('.topbar > *:not(.user-chip)')
   const tl = gsap.timeline({ paused: true })
   tl.set([...brand, ...groups], strong ? { opacity: 0, x: -14 } : { opacity: 0, y: 8 })
   tl.set(top, strong ? { opacity: 0, y: -10 } : { opacity: 0, y: 8 })
+  // 胶囊的隐藏交给 WelcomeChain 自己（它在子组件 onMounted 里就设，早于这里的首帧）：
+  // 外壳若也压一次 0，窄屏「链条跳过」时就没人把它拉回来，头像会一直空着。
   tl.add(() => frame.classList.add('is-entrance-ready'))
   tl.to(brand, { opacity: 1, x: 0, y: 0, duration: 0.5, ease: EASE.reveal }, strong ? 0.06 : 0)
   tl.to(groups, { opacity: 1, x: 0, y: 0, duration: 0.52, ease: EASE.reveal, stagger: { each: 0.05, from: 'start' } }, strong ? 0.14 : 0.08)

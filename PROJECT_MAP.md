@@ -72,7 +72,7 @@
 | 导航树与折叠 | `components/layout/NavTreeNode.vue`、`composables/navCollapse.ts`、`utils/navTree.ts` | 递归渲染任意层级菜单、分组折叠状态（`sessionStorage` 的 `keystone.navCollapsed`）、菜单树转换纯函数（深度上限 `MAX_MENU_DEPTH=6`） |
 | 请求与会话 | `api/http.ts`、`api/session.ts`、`composables/auth.ts`、`router/index.ts` | 响应解包、存储、401 处理、动态路由与会话清理 |
 | 外观与动效 | `composables/appearance.ts`、`motion.ts`、`focus.ts` | 主题、密度、GSAP、浮层层级与焦点 |
-| 登录转场与欢迎链 | `composables/welcome.ts`、`components/welcome/WelcomeChain.vue`、`components/welcome/WarpTransit.vue` | 登录成功 → 特效层（消散粒子接续 DOM 轮廓 → 天幕暗场拉起 → 曲率光丝 → 切路由全程暗场 → 脱出星抵达）`transitReleased` 放行 → 欢迎链「星球坠落 → 炸开 → 浮牌逐字打字 → 吸附回落页头」；交接状态机（idle / leaving / arriving）、`transitActive/Released/Swapped/Abort` 信号、点击拦截、`ARRIVE_BUDGET` 收尾、工作台数据预热；粒子走 canvas（`lighter` additive）。导航失败走 abort：还原面板 + `succeeded=false` + 特效层快速淡出 |
+| 登录转场与欢迎链 | `composables/welcome.ts`、`components/welcome/WelcomeChain.vue`、`components/welcome/WarpTransit.vue` | 登录成功 → 特效层（消散粒子接续 DOM 轮廓 → 天幕暗场拉起 → 曲率光丝 → 切路由全程暗场 → 脱出星抵达）`transitReleased` 放行 → 欢迎链「星球坠落 → 炸开 → 浮牌逐字打字 → 吸附回落页头」；交接状态机（idle / leaving / arriving）、`transitActive/Released/Swapped/Abort` 信号、点击拦截（仅 leaving 段）、`ARRIVE_BUDGET` 收尾、工作台数据预热；粒子走 canvas（`lighter` additive）。**可打断**：`welcomeAbort` + `abortWelcome()`，用户 pointerdown / keydown / wheel / 切页即杀补间、还原标题与头像并卸载图层。导航失败走 abort：还原面板 + `succeeded=false` + 特效层快速淡出 |
 | 首屏骨架 | `components/ui/Skeleton.vue`、`views/Dashboard.vue` | 数据未到时用等高灰条占位，卡片从第 0 帧就在位；`page.is-handoff` 期间跳过「藏卡片」兜底 |
 | 样式 | `styles/tokens.css`、`base.css`、`materials.css`、`components.css`、`instruments.css`、`layout.css`、`pages.css` | 顺序加载的七层样式 |
 
@@ -141,6 +141,7 @@
 | 登录后首屏白一下再出内容 | `playShellEntrance`、`Dashboard.playEntrance`、`pageEnter` | 别用 `opacity: 0` 表达组装：改骨架等高占位，卡片只做位移；整框不参与淡入（舞台底一直在） | 已确认 |
 | SVG 虚线拖尾不生效 / 属性被忽略 | `motion.ts`、`WelcomeChain.vue` | GSAP 把 `stroke-dasharray/dashoffset` 写成**内联样式**，优先级高于 SVG 表现属性，`setAttribute` 被静默忽略，必须写 `path.style.*` | 已确认 |
 | 欢迎动效「看不出来」/ 视觉变化为零 | `WelcomeChain.vue` | 浮牌若与真实标题同字号同色又精确压在标题上，用户看到的还是原标题。浮牌必须有玻璃底与投影，且播放期间隐藏真实 `.page-title` | 已确认 |
+| 登录动画期间点不动页面 / 点完动画还在播 | `composables/welcome.ts`、`WelcomeChain.vue` | 不要用 `handoffActive` 全程拦点击；`arriving` 起放行手势，命中即 `abortWelcome()`。杀补间后 `played()` 不得 resolve（否则链条继续往下写 DOM） | 已确认 |
 | 归位落点判定误报偏了几十像素 | 验证脚本 | `.page-title` 是 `<h1>` 块元素，盒宽 > 文字宽，用「盒中心」比较会误判。归位要比**文字起始边**（左边缘 + 纵向中心） | 已确认 |
 | 入场动画被视口切边 | `WelcomeChain.vue` | 抛物线的顶点比起点更高，起点贴顶会冲出上沿。起点下移到 `(vw-150, 124)`；断言里有「飞行全程不出视口」兜底 | 已确认 |
 | 问候语「没经过打字效果」 | `WelcomeChain.vue` | 模板预渲染了 `下午好，`，只有用户名在打。整句一起 `typeOut`；牌宽会随打字变化，每写一个字要重新居中 | 已确认 |
