@@ -44,3 +44,12 @@ keystone-vue/.tmp-*
 /docs/superpowers/
 /docs/product-technical-plan.md
 /docs/frontend-architecture.png
+
+# 动效逐帧取帧：调试期临时产物，不入库
+# 只忽略「过程帧」；结论性截图（verify-*.png、*-final.png）仍按惯例入库当取证
+keystone-vue/scripts/idc-*.png
+keystone-vue/scripts/split-*.png
+keystone-vue/scripts/v2-*.png
+keystone-vue/scripts/exit-mid.png
+keystone-vue/scripts/exit-stars-*.png
+keystone-vue/scripts/*-TIMEOUT.png
